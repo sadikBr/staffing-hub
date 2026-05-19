@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.brahimsadik.staffinghub.dtos.technology.TechnologyCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.technology.TechnologyResponse;
 import com.brahimsadik.staffinghub.mappers.TechnologyMapper;
-import com.brahimsadik.staffinghub.models.Technology;
 import com.brahimsadik.staffinghub.repositories.TechnologyRepository;
 
 import lombok.AllArgsConstructor;
@@ -34,7 +33,7 @@ public class TechnologyService {
     }
 
     public List<TechnologyResponse> findAllTechnologies() {
-        final var allTechnologies = (List<Technology>) technologyRepository.findAll();
+        final var allTechnologies = technologyRepository.findAll();
         return allTechnologies.stream().map(tech -> technologyMapper.toTechnologyResponse(tech)).toList();
     }
 
