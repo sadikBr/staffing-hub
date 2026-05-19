@@ -1,0 +1,8 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE "technologies" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "label" TEXT UNIQUE NOT NULL,
+    "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
