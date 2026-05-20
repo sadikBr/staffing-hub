@@ -134,7 +134,7 @@ public class EmployeeService {
 
         employee.setTechnologies(newTechnologies);
         var persistedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toEmployeeResponse(employee);
+        return employeeMapper.toEmployeeResponse(persistedEmployee);
     }
 
 }
