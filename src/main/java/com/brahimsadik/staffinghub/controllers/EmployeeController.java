@@ -3,6 +3,7 @@ package com.brahimsadik.staffinghub.controllers;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
+import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeTechnologiesRequest;
 import com.brahimsadik.staffinghub.services.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -74,6 +75,16 @@ public class EmployeeController {
     public ResponseEntity<?> setEmployeeRoles(@PathVariable UUID id, @RequestBody SetEmployeeRolesRequest request) {
         try {
             final var employeeResponse = employeeService.setEmployeeRoles(id, request);
+            return ResponseEntity.ok(employeeResponse);
+        } catch (final RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/technologies")
+    public ResponseEntity<?> setEmployeeTechnologies(@PathVariable UUID id, @RequestBody SetEmployeeTechnologiesRequest request) {
+        try {
+            final var employeeResponse = employeeService.setEmployeeTechnologies(id, request);
             return ResponseEntity.ok(employeeResponse);
         } catch (final RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));

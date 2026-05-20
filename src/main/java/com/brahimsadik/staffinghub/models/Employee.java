@@ -66,4 +66,8 @@ public class Employee {
     @JoinTable(name = "employees_roles", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(name = "employees_technologies", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "technology_id"))
+    private Set<Technology> technologies = new HashSet<>();
+
 }

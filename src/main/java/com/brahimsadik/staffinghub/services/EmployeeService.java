@@ -3,11 +3,14 @@ package com.brahimsadik.staffinghub.services;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
+import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeTechnologiesRequest;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.models.Role;
+import com.brahimsadik.staffinghub.models.Technology;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
 import com.brahimsadik.staffinghub.repositories.RoleRepository;
+import com.brahimsadik.staffinghub.repositories.TechnologyRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,7 @@ import java.util.UUID;
 public class EmployeeService {
 
     private final RoleRepository roleRepository;
+    private final TechnologyRepository technologyRepository;
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
 
@@ -114,6 +118,23 @@ public class EmployeeService {
         employee.setRoles(newRoles);
         var persistedEmployee = employeeRepository.save(employee);
         return employeeMapper.toEmployeeResponse(persistedEmployee);
+    }
+
+    public EmployeeResponse setEmployeeTechnologies(UUID id, SetEmployeeTechnologiesRequest request) {
+        var employee = employeeRepository.findById(id).orElse(null);
+        if (employee == null) {
+            throw new RuntimeException("No employee exists with the id: " + id);
+        }
+
+        var newTechnologies = (Set<Technology>) technologyRepository.findAllById(request.getTechnologiesIds());
+
+        if (newTechnologies.size() != request.getTechnologiesIds().size()) {
+            throw new RuntimeException("One ore more provided technology IDs are invalid.");
+        }
+
+        employee.setTechnologies(newTechnologies);
+        var persistedEmployee = employeeRepository.save(employee);
+        return employeeMapper.toEmployeeResponse(employee);
     }
 
 }
