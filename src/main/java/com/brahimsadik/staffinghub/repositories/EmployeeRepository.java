@@ -1,14 +1,15 @@
 package com.brahimsadik.staffinghub.repositories;
 
-import com.brahimsadik.staffinghub.models.Employee;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import com.brahimsadik.staffinghub.models.Employee;
 
 public interface EmployeeRepository extends CrudRepository<Employee, UUID> {
 

@@ -1,5 +1,11 @@
 package com.brahimsadik.staffinghub.services;
 
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
@@ -11,12 +17,8 @@ import com.brahimsadik.staffinghub.models.Technology;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
 import com.brahimsadik.staffinghub.repositories.RoleRepository;
 import com.brahimsadik.staffinghub.repositories.TechnologyRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -36,9 +38,9 @@ public class EmployeeService {
             return employeeMapper.toEmployeeResponse(persistedEmployee);
         }
 
-        var managerId = request.getManagerId().get();
+        final var managerId = request.getManagerId().get();
 
-        var manager = employeeRepository.findById(managerId).orElse(null);
+        final var manager = employeeRepository.findById(managerId).orElse(null);
         if (manager == null) {
             throw new RuntimeException(String.format("No manager exists with the id: " + managerId));
         }
@@ -81,9 +83,9 @@ public class EmployeeService {
             return employeeMapper.toEmployeeResponse(persistedEmployee);
         }
 
-        var managerId = request.getManagerId().get();
+        final var managerId = request.getManagerId().get();
 
-        var manager = employeeRepository.findById(managerId).orElse(null);
+        final var manager = employeeRepository.findById(managerId).orElse(null);
         if (manager == null) {
             throw new RuntimeException(String.format("No manager exists with the id: " + managerId));
         }
@@ -104,36 +106,36 @@ public class EmployeeService {
     }
 
     public EmployeeResponse setEmployeeRoles(UUID id, SetEmployeeRolesRequest request) {
-        var employee = employeeRepository.findById(id).orElse(null);
+        final var employee = employeeRepository.findById(id).orElse(null);
         if (employee == null) {
             throw new RuntimeException("No employee exists with the id: " + id);
         }
 
-        var newRoles = (Set<Role>) roleRepository.findAllById(request.getRolesIds());
+        final var newRoles = (Set<Role>) roleRepository.findAllById(request.getRolesIds());
 
         if (newRoles.size() != request.getRolesIds().size()) {
             throw new RuntimeException("One or more provided role IDs are invalid.");
         }
 
         employee.setRoles(newRoles);
-        var persistedEmployee = employeeRepository.save(employee);
+        final var persistedEmployee = employeeRepository.save(employee);
         return employeeMapper.toEmployeeResponse(persistedEmployee);
     }
 
     public EmployeeResponse setEmployeeTechnologies(UUID id, SetEmployeeTechnologiesRequest request) {
-        var employee = employeeRepository.findById(id).orElse(null);
+        final var employee = employeeRepository.findById(id).orElse(null);
         if (employee == null) {
             throw new RuntimeException("No employee exists with the id: " + id);
         }
 
-        var newTechnologies = (Set<Technology>) technologyRepository.findAllById(request.getTechnologiesIds());
+        final var newTechnologies = (Set<Technology>) technologyRepository.findAllById(request.getTechnologiesIds());
 
         if (newTechnologies.size() != request.getTechnologiesIds().size()) {
             throw new RuntimeException("One ore more provided technology IDs are invalid.");
         }
 
         employee.setTechnologies(newTechnologies);
-        var persistedEmployee = employeeRepository.save(employee);
+        final var persistedEmployee = employeeRepository.save(employee);
         return employeeMapper.toEmployeeResponse(persistedEmployee);
     }
 
