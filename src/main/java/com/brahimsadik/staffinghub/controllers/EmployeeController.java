@@ -68,7 +68,6 @@ public class EmployeeController {
         } catch (final RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
-
     }
 
     @PostMapping("/{id}/roles")
