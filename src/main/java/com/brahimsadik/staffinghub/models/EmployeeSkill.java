@@ -20,7 +20,7 @@ public class EmployeeSkill {
     @Setter
     @AllArgsConstructor
     @EqualsAndHashCode
-    static class EmployeeSkillId implements Serializable {
+    public static class EmployeeSkillId implements Serializable {
         private UUID employeeId;
         private UUID skillId;
     }
