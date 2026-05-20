@@ -2,9 +2,11 @@ package com.brahimsadik.staffinghub.services;
 
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
+import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
+import com.brahimsadik.staffinghub.repositories.RoleRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class EmployeeService {
 
+    private final RoleRepository roleRepository;
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
 
@@ -92,6 +95,24 @@ public class EmployeeService {
         }
 
         employeeRepository.delete(employee);
+    }
+
+    public EmployeeResponse setEmployeeRoles(UUID id, SetEmployeeRolesRequest request) {
+        var employee = employeeRepository.findById(id).orElse(null);
+        if (employee == null) {
+            throw new RuntimeException("No employee exists with the id: " + id);
+        }
+
+        for (var roleId : request.getRolesIds()) {
+            var role = roleRepository.findById(roleId).orElse(null);
+            if (role == null) {
+                throw new RuntimeException("No role exists with the id: " + roleId);
+            }
+
+            employee.addRole(role);
+        }
+        var persistedEmployee = employeeRepository.save(employee);
+        return employeeMapper.toEmployeeResponse(persistedEmployee);
     }
 
 }

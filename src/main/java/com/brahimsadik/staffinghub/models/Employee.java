@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.models;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -59,6 +60,14 @@ public class Employee {
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Employee> staff;
+    private Set<Employee> staff = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "employees_roles", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
+
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
 
 }
