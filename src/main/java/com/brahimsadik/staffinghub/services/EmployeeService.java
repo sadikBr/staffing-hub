@@ -5,12 +5,14 @@ import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
 import com.brahimsadik.staffinghub.models.Employee;
+import com.brahimsadik.staffinghub.models.Role;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
 import com.brahimsadik.staffinghub.repositories.RoleRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -103,14 +105,13 @@ public class EmployeeService {
             throw new RuntimeException("No employee exists with the id: " + id);
         }
 
-        for (var roleId : request.getRolesIds()) {
-            var role = roleRepository.findById(roleId).orElse(null);
-            if (role == null) {
-                throw new RuntimeException("No role exists with the id: " + roleId);
-            }
+        var newRoles = (Set<Role>) roleRepository.findAllById(request.getRolesIds());
 
-            employee.addRole(role);
+        if (newRoles.size() != request.getRolesIds().size()) {
+            throw new RuntimeException("One or more provided role IDs are invalid.");
         }
+
+        employee.setRoles(newRoles);
         var persistedEmployee = employeeRepository.save(employee);
         return employeeMapper.toEmployeeResponse(persistedEmployee);
     }
