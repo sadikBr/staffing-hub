@@ -34,7 +34,7 @@ public class TechnologyService {
 
     public List<TechnologyResponse> findAllTechnologies() {
         final var allTechnologies = technologyRepository.findAll();
-        return allTechnologies.stream().map(tech -> technologyMapper.toTechnologyResponse(tech)).toList();
+        return allTechnologies.stream().map(technologyMapper::toTechnologyResponse).toList();
     }
 
     public TechnologyResponse findTechnologyById(UUID id) {

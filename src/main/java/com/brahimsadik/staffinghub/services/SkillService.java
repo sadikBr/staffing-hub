@@ -43,7 +43,7 @@ public class SkillService {
 
     public List<SkillResponse> findAllSkills() {
         final var allSkills = (List<Skill>) skillRepository.findAll();
-        return allSkills.stream().map(skill -> skillMapper.toSkillResponse(skill)).toList();
+        return allSkills.stream().map(skillMapper::toSkillResponse).toList();
     }
 
     public SkillResponse findSkillById(UUID id) {

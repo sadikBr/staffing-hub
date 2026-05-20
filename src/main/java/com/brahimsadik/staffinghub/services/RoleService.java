@@ -35,7 +35,7 @@ public class RoleService {
 
     public List<RoleResponse> findAllRoles() {
         final var allRoles = (List<Role>) roleRepository.findAll();
-        return allRoles.stream().map(role -> roleMapper.toRoleResponse(role)).toList();
+        return allRoles.stream().map(roleMapper::toRoleResponse).toList();
     }
 
     public RoleResponse findRoleById(UUID id) {

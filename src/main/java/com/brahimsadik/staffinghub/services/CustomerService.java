@@ -35,7 +35,7 @@ public class CustomerService {
 
     public List<CustomerResponse> findAllCustomers() {
         final var allCustomers = (List<Customer>) customerRepository.findAll();
-        return allCustomers.stream().map(customer -> customerMapper.toCustomerResponse(customer)).toList();
+        return allCustomers.stream().map(customerMapper::toCustomerResponse).toList();
     }
 
     public CustomerResponse findCustomerById(UUID id) {
