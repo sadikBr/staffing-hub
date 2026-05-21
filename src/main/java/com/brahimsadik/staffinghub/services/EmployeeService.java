@@ -1,22 +1,23 @@
 package com.brahimsadik.staffinghub.services;
 
-import java.util.*;
-
-import org.springframework.stereotype.Service;
-
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeTechnologiesRequest;
+import com.brahimsadik.staffinghub.dtos.employeeskill.EmployeeSkillCreationRequest;
+import com.brahimsadik.staffinghub.dtos.employeeskill.EmployeeSkillDeletionRequest;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
+import com.brahimsadik.staffinghub.mappers.EmployeeSkillMapper;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.models.Role;
 import com.brahimsadik.staffinghub.models.Technology;
-import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
-import com.brahimsadik.staffinghub.repositories.RoleRepository;
-import com.brahimsadik.staffinghub.repositories.TechnologyRepository;
-
+import com.brahimsadik.staffinghub.repositories.*;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -26,6 +27,9 @@ public class EmployeeService {
     private final TechnologyRepository technologyRepository;
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
+    private final EmployeeSkillMapper employeeSkillMapper;
+    private final SkillRepository skillRepository;
+    private final EmployeeSkillRepository employeeSkillRepository;
 
     public EmployeeResponse create(EmployeeCreationUpdateRequest request) {
         final var employee = employeeMapper.toEmployee(request);
@@ -135,6 +139,45 @@ public class EmployeeService {
         employee.setTechnologies(newTechnologies);
         final var persistedEmployee = employeeRepository.save(employee);
         return employeeMapper.toEmployeeResponse(persistedEmployee);
+    }
+
+    public EmployeeResponse addSkillToEmployee(EmployeeSkillCreationRequest request) {
+        final var employee = employeeRepository.findById(request.getEmployeeId()).orElse(null);
+        if (employee == null) {
+            throw new RuntimeException("No employee exists with the id: " + request.getEmployeeId());
+        }
+
+        final var skill = skillRepository.findByIdWithTechnology(request.getSkillId()).orElse(null);
+        if (skill == null) {
+            throw new RuntimeException("No skill exists with the id: " + request.getSkillId());
+        }
+
+        var technology = skill.getTechnology();
+        if (!employee.hasTechnology(technology.getId())) {
+            throw new RuntimeException("The employee has no expertise in this technology.");
+        }
+
+        var employeeSkill = employeeSkillMapper.toEmployeeSkill(request);
+
+        employeeSkill.setId(employeeSkillMapper.toId(request));
+        employeeSkill.setEmployee(employee);
+        employeeSkill.setSkill(skill);
+
+        employeeSkillRepository.save(employeeSkill);
+
+        return employeeMapper.toEmployeeResponse(employee);
+    }
+
+    public EmployeeResponse removeSkillFromEmployee(EmployeeSkillDeletionRequest request) {
+        var employeeSkill = employeeSkillRepository.findById(employeeSkillMapper.toId(request)).orElse(null);
+        if (employeeSkill == null) {
+            throw new RuntimeException("No employee skill found for the give IDs");
+        }
+
+        var employee = employeeSkill.getEmployee();
+        employeeSkillRepository.delete(employeeSkill);
+
+        return employeeMapper.toEmployeeResponse(employee);
     }
 
 }
