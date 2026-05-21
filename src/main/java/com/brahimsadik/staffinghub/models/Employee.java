@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.brahimsadik.staffinghub.enums.Community;
@@ -30,6 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.type.SqlTypes;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -53,10 +55,12 @@ public class Employee {
     @Column(name = "comment")
     private String comment;
 
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Enumerated(EnumType.STRING)
     @Column(name = "seniority")
     private Seniority seniority;
 
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Enumerated(EnumType.STRING)
     @Column(name = "community")
     private Community community;

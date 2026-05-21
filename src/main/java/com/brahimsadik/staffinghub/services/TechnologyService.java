@@ -3,6 +3,7 @@ package com.brahimsadik.staffinghub.services;
 import java.util.List;
 import java.util.UUID;
 
+import com.brahimsadik.staffinghub.dtos.technology.TechnologyWithSkillsResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -32,18 +33,18 @@ public class TechnologyService {
         }
     }
 
-    public List<TechnologyResponse> findAllTechnologies() {
+    public List<TechnologyWithSkillsResponse> findAllTechnologies() {
         final var allTechnologies = technologyRepository.findAll();
-        return allTechnologies.stream().map(technologyMapper::toTechnologyResponse).toList();
+        return allTechnologies.stream().map(technologyMapper::toTechnologyWithSkillsResponse).toList();
     }
 
-    public TechnologyResponse findTechnologyById(UUID id) {
+    public TechnologyWithSkillsResponse findTechnologyById(UUID id) {
         final var technology = technologyRepository.findById(id).orElse(null);
         if (technology == null) {
             throw new RuntimeException("No technology exists with the id: " + id);
         }
 
-        return technologyMapper.toTechnologyResponse(technology);
+        return technologyMapper.toTechnologyWithSkillsResponse(technology);
     }
 
     public TechnologyResponse updateTechnologyById(UUID id, TechnologyCreationUpdateRequest request) {

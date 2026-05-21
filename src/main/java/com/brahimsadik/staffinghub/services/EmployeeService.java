@@ -1,8 +1,6 @@
 package com.brahimsadik.staffinghub.services;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 
@@ -111,7 +109,7 @@ public class EmployeeService {
             throw new RuntimeException("No employee exists with the id: " + id);
         }
 
-        final var newRoles = (Set<Role>) roleRepository.findAllById(request.getRolesIds());
+        final var newRoles = new HashSet<>((List<Role>) roleRepository.findAllById(request.getRolesIds()));
 
         if (newRoles.size() != request.getRolesIds().size()) {
             throw new RuntimeException("One or more provided role IDs are invalid.");
@@ -128,7 +126,7 @@ public class EmployeeService {
             throw new RuntimeException("No employee exists with the id: " + id);
         }
 
-        final var newTechnologies = (Set<Technology>) technologyRepository.findAllById(request.getTechnologiesIds());
+        final var newTechnologies = new HashSet<>((List<Technology>) technologyRepository.findAllById(request.getTechnologiesIds()));
 
         if (newTechnologies.size() != request.getTechnologiesIds().size()) {
             throw new RuntimeException("One ore more provided technology IDs are invalid.");
