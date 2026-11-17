@@ -1,13 +1,15 @@
-import { ActionIcon, Group, SegmentedControl, Stack, Switch, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Group, Menu, SegmentedControl, Select, Stack, Switch, Text, Tooltip } from '@mantine/core';
 import { DateInput, DatePickerInput } from '@mantine/dates';
-import { IconCalendarStats, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconArrowsSort, IconCalendarStats, IconCheck, IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAvailability } from '@/api/hooks/employees';
+import { useCustomers } from '@/api/hooks/reference';
 import { useMoveAssignment } from '@/api/hooks/missions';
 import { usePermissions } from '@/auth/permissions';
-import type { EmployeeAvailability } from '@/api/types';
+import type { AvailabilitySituation, EmployeeAvailability } from '@/api/types';
+import { MissionSelect } from '@/components/MissionSelect';
 import { DaysOff, FormerEmployeeBadge, OverbookedBadge, SeniorityBadge } from '@/components/badges';
 import { PersonCell } from '@/components/EmployeeAvatar';
 import { EmptyState } from '@/components/EmptyState';
@@ -19,13 +21,18 @@ import { TimelineAxis, TimelineLegend, TimelineTrack, type TimelineBar } from '@
 import { availabilityTone } from '@/lib/availability';
 import { addDays, formatPercent, formatPeriod, today } from '@/lib/format';
 import { missionColor, shiftWindow, type TimelineWindow } from '@/lib/timeline';
-import { useUrlState } from '@/lib/useUrlState';
+import { orUndefined, useUrlState } from '@/lib/useUrlState';
 import { EmployeeFilters } from '../employees/EmployeeFilters';
 import { EMPLOYEE_FILTER_KEYS, toEmployeeQuery } from '../employees/employeeFilterQuery';
 import classes from './AvailabilityPage.module.css';
 
 const PAGE_SIZE = 25;
-const KEYS = [...EMPLOYEE_FILTER_KEYS, 'from', 'to', 'openEnded', 'minAvailability'] as const;
+/** Filters on what happens during the period, on top of the employee filters. */
+const PERIOD_FILTER_KEYS = ['customerId', 'missionId', 'situation'] as const;
+const KEYS = [...EMPLOYEE_FILTER_KEYS, ...PERIOD_FILTER_KEYS, 'from', 'to', 'openEnded', 'minAvailability', 'order'] as const;
+const SITUATIONS = ['ALL', 'ON_BENCH', 'OVERBOOKED', 'AWAY'] as const;
+const ORDERS = ['MOST_AVAILABLE', 'LEAST_AVAILABLE', 'NAME'] as const;
+type Order = (typeof ORDERS)[number];
 const PRESETS = [
   { key: 'twoWeeks', days: 14 },
   { key: 'month', days: 30 },
@@ -39,6 +46,7 @@ export default function AvailabilityPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const url = useUrlState(KEYS);
+  const customers = useCustomers();
 
   const from = url.values.from || today();
   const openEnded = url.values.openEnded === 'true';
@@ -51,11 +59,16 @@ export default function AvailabilityPage() {
     from,
     to,
     minAvailability: minAvailability ? Number(minAvailability) : undefined,
+    customerId: orUndefined(url.values.customerId),
+    missionId: orUndefined(url.values.missionId),
+    situation: orUndefined<AvailabilitySituation>(url.values.situation),
+    order: orUndefined<Order>(url.values.order),
     page: url.page,
     size: PAGE_SIZE,
   });
 
-  const employeeFilterCount = EMPLOYEE_FILTER_KEYS.filter((key) => url.values[key]).length;
+  const order: Order = (ORDERS as readonly string[]).includes(url.values.order) ? (url.values.order as Order) : 'MOST_AVAILABLE';
+  const employeeFilterCount = [...EMPLOYEE_FILTER_KEYS, ...PERIOD_FILTER_KEYS].filter((key) => url.values[key]).length;
   const setPreset = (days: number) => url.set({ from: today(), to: addDays(today(), days - 1), openEnded: '' });
   const activePreset = !openEnded && from === today() ? PRESETS.find((preset) => to === addDays(from, preset.days - 1))?.key : undefined;
   const shift = (direction: 1 | -1) => {
@@ -126,18 +139,30 @@ export default function AvailabilityPage() {
             checked={openEnded}
             onChange={(event) => url.set({ openEnded: event.currentTarget.checked ? 'true' : '', to: '' })}
           />
-          <Group gap={8} wrap="nowrap">
-            <Text className="sh-label">{t('availability.minAvailability')}</Text>
-            <SegmentedControl
-              size="xs"
-              value={minAvailability}
-              onChange={(value) => url.set({ minAvailability: value })}
-              data={MIN_AVAILABILITY.map((value) => ({
-                value,
-                label: value === '' ? t('availability.anyAvailability') : value === '100' ? t('availability.fullyFree') : `${value}%+`,
-              }))}
-            />
-          </Group>
+        </Group>
+      </div>
+
+      <div className={classes.quick}>
+        <Group gap={8} wrap="nowrap">
+          <Text className="sh-label">{t('availability.minAvailability')}</Text>
+          <SegmentedControl
+            size="xs"
+            value={minAvailability}
+            onChange={(value) => url.set({ minAvailability: value })}
+            data={MIN_AVAILABILITY.map((value) => ({
+              value,
+              label: value === '' ? t('availability.anyAvailability') : value === '100' ? t('availability.fullyFree') : `${value}%+`,
+            }))}
+          />
+        </Group>
+        <Group gap={8} wrap="nowrap">
+          <Text className="sh-label">{t('availability.situation.label')}</Text>
+          <SegmentedControl
+            size="xs"
+            value={url.values.situation || 'ALL'}
+            onChange={(value) => url.set({ situation: value === 'ALL' ? '' : value })}
+            data={SITUATIONS.map((value) => ({ value, label: t(`availability.situation.${value}`) }))}
+          />
         </Group>
       </div>
 
@@ -145,8 +170,49 @@ export default function AvailabilityPage() {
         <EmployeeFilters
           values={url.values}
           onChange={url.set}
-          onClear={() => url.set(Object.fromEntries(EMPLOYEE_FILTER_KEYS.map((key) => [key, ''])))}
+          onClear={() => url.set(Object.fromEntries([...EMPLOYEE_FILTER_KEYS, ...PERIOD_FILTER_KEYS].map((key) => [key, ''])))}
           activeCount={employeeFilterCount}
+          extraAdvancedCount={(url.values.customerId ? 1 : 0) + (url.values.missionId ? 1 : 0)}
+          extraAdvanced={
+            <>
+              <Select
+                placeholder={t('availability.filters.anyCustomer')}
+                aria-label={t('availability.filters.customer')}
+                data={(customers.data ?? []).map((customer) => ({ value: customer.id, label: customer.label }))}
+                value={url.values.customerId || null}
+                onChange={(value) => url.set({ customerId: value ?? '' })}
+                clearable
+                searchable
+              />
+              <MissionSelect
+                placeholder={t('availability.filters.anyMission')}
+                aria-label={t('availability.filters.mission')}
+                value={url.values.missionId || null}
+                onChange={(value) => url.set({ missionId: value ?? '' })}
+              />
+            </>
+          }
+          extra={
+            <Menu position="bottom-end" width={230}>
+              <Menu.Target>
+                <Button variant="subtle" color="gray" leftSection={<IconArrowsSort size={16} />} rightSection={<IconChevronDown size={14} />}>
+                  {t(`availability.order.${order}`)}
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>{t('common.sortBy')}</Menu.Label>
+                {ORDERS.map((value) => (
+                  <Menu.Item
+                    key={value}
+                    onClick={() => url.set({ order: value === 'MOST_AVAILABLE' ? '' : value })}
+                    rightSection={value === order ? <IconCheck size={14} /> : undefined}
+                  >
+                    {t(`availability.order.${value}`)}
+                  </Menu.Item>
+                ))}
+              </Menu.Dropdown>
+            </Menu>
+          }
         />
       </div>
       </div>
@@ -161,7 +227,7 @@ export default function AvailabilityPage() {
         <>
           <div className={classes.summary}>
             <Text size="sm" c="var(--sh-text-2)">
-              {t('availability.resultsFor', { period: formatPeriod(from, to ?? null) })}
+              {t('availability.resultsFor', { period: formatPeriod(from, to ?? null), order: t(`availability.order.${order}`) })}
               {openEnded && ` · ${t('availability.openEndedDisplay', { count: OPEN_ENDED_DISPLAY_DAYS })}`}
             </Text>
             <TimelineLegend />

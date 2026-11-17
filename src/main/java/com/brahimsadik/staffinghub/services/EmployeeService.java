@@ -57,7 +57,8 @@ public class EmployeeService {
     @Transactional(readOnly = true)
     public Page<EmployeeResponse> searchEmployees(EmployeeSearchCriteria criteria, Pageable pageable) {
         validate(criteria);
-        return employeeRepository.findAll(EmployeeSpecifications.matching(criteria, LocalDate.now(clock)), pageable)
+        return employeeRepository.findAll(EmployeeSpecifications.matching(criteria, LocalDate.now(clock),
+                criteria.wholeTeam() ? employeeRepository.findTeamIds(criteria.managerId()) : null), pageable)
                 .map(employeeMapper::toEmployeeResponse);
     }
 

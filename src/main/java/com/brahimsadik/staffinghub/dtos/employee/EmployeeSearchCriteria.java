@@ -22,13 +22,19 @@ public record EmployeeSearchCriteria(
         UUID skillId,
         @Parameter(description = "With skillId: only employees at this level or above")
         SkillLevel minSkillLevel,
-        @Parameter(description = "Only the direct staff of this manager")
+        @Parameter(description = "Only the staff of this manager (direct reports, unless includeIndirectReports)")
         UUID managerId,
+        @Parameter(description = "With managerId: also their staff's staff, and so on down the hierarchy (default false)")
+        Boolean includeIndirectReports,
         @Parameter(description = "Include employees whose departure date has passed (default false)")
         Boolean includeFormer) {
 
     public boolean includeFormerEmployees() {
         return Boolean.TRUE.equals(includeFormer);
+    }
+
+    public boolean wholeTeam() {
+        return managerId != null && Boolean.TRUE.equals(includeIndirectReports);
     }
 
 }

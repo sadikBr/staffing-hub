@@ -10,6 +10,8 @@ export const EMPLOYEE_FILTER_KEYS = [
   'technologyId',
   'skillId',
   'minSkillLevel',
+  'managerId',
+  'includeIndirectReports',
   'includeFormer',
 ] as const;
 
@@ -25,6 +27,8 @@ export function toEmployeeQuery(values: EmployeeFilterValues) {
     technologyId: orUndefined(values.technologyId),
     skillId: orUndefined(values.skillId),
     minSkillLevel: values.skillId ? orUndefined<SkillLevel>(values.minSkillLevel) : undefined,
+    managerId: orUndefined(values.managerId),
+    includeIndirectReports: values.managerId && values.includeIndirectReports === 'true' ? true : undefined,
     includeFormer: values.includeFormer === 'true' ? true : undefined,
   };
 }

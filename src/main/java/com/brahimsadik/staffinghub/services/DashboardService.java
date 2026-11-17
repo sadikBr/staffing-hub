@@ -34,7 +34,7 @@ public class DashboardService {
     private static final List<MissionStatus> ACTIVE_MISSIONS = List.of(MissionStatus.PROSPECT,
             MissionStatus.CONFIRMED, MissionStatus.ONGOING);
     private static final EmployeeSearchCriteria ALL_ACTIVE = new EmployeeSearchCriteria(null, null, null, null, null,
-            null, null, null, false);
+            null, null, null, null, false);
 
     private final AvailabilityService availabilityService;
     private final MissionRepository missionRepository;
@@ -49,7 +49,7 @@ public class DashboardService {
         final var to = from.plusDays(HORIZON_DAYS - 1L);
 
         final var availability = availabilityService.computeAvailability(ALL_ACTIVE,
-                new AvailabilityCriteria(from, to, null));
+                AvailabilityCriteria.period(from, to));
         final var available = availability.stream()
                 .filter(employee -> employee.availability().compareTo(AVAILABLE_THRESHOLD) >= 0).toList();
         final var overbooked = availability.stream().filter(employee -> employee.overbooked()).toList();

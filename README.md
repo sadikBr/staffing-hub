@@ -87,7 +87,7 @@ and assign them to users or groups (they arrive in the `roles` claim). With Keyc
 | Reference data | `/api/customers`, `/api/roles`, `/api/technologies`, `/api/skills?technologyId=` (CRUD) |
 | Employees | `/api/employees` (search + CRUD), `/api/employees/{id}/roles`, `/technologies`, `/skills/{skillId}`, `/assignments` |
 | Absences | `/api/employees/{id}/absences` (CRUD) |
-| Availability | `/api/employees/availability?from=&to=&minAvailability=` (+ the employee search filters) |
+| Availability | `/api/employees/availability?from=&to=&minAvailability=&customerId=&missionId=&situation=&order=` (+ the employee search filters) |
 | Missions | `/api/missions` (search, filter by customer, status, business unit), `/api/missions/{id}/skills/{skillId}`, `/api/missions/{id}/assignments` (+ `PATCH .../{assignmentId}/period` to move one in time) |
 | Open positions | `/api/missions/{id}/needs` (CRUD), `.../needs/{needId}/candidates` (ranked), `.../needs/{needId}/fill` |
 | Dashboard | `/api/dashboard` (next 30 days) |
@@ -144,7 +144,9 @@ frontend/src
   `frontend/`. Any frontend code the change breaks then fails to compile.
 - **Languages**: copy `src/i18n/locales/en.json` to e.g. `fr.json`, translate the values, and register it in
   `src/i18n/index.ts`. A language switcher appears in the user menu as soon as there is more than one language.
-- **Filters live in the URL**: every search can be bookmarked and shared.
+- **Filters live in the URL**: every search can be bookmarked and shared. Employees can be filtered by manager (with
+  or without their whole team, at any depth); availability also by customer and mission during the period, and by
+  situation (on the bench, overbooked, away).
 - **Timelines**: assignment bars can be dragged to move them, or stretched from either edge to change one date
   (staffers and admins).
 - **Look and feel**: colors, fonts and spacing are defined once in `src/theme.ts` (Mantine theme plus `--sh-*` CSS

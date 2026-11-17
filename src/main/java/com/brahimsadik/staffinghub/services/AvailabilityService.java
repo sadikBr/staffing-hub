@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.brahimsadik.staffinghub.domain.OccupationCalculator;
 import com.brahimsadik.staffinghub.domain.WorkingDays;
 import com.brahimsadik.staffinghub.dtos.availability.AvailabilityCriteria;
+import com.brahimsadik.staffinghub.dtos.availability.AvailabilityOrder;
+import com.brahimsadik.staffinghub.dtos.availability.AvailabilitySituation;
 import com.brahimsadik.staffinghub.dtos.availability.EmployeeAvailabilityResponse;
 import com.brahimsadik.staffinghub.dtos.availability.OverlappingAssignment;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeSearchCriteria;
@@ -35,17 +37,23 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class AvailabilityService {
 
-    private static final Comparator<EmployeeAvailabilityResponse> MOST_AVAILABLE_FIRST = Comparator
-            .comparing(EmployeeAvailabilityResponse::availability).reversed()
-            .thenComparing(EmployeeAvailabilityResponse::lastName)
+    private static final Comparator<EmployeeAvailabilityResponse> BY_NAME = Comparator
+            .comparing(EmployeeAvailabilityResponse::lastName)
             .thenComparing(EmployeeAvailabilityResponse::firstName);
+    private static final Comparator<EmployeeAvailabilityResponse> MOST_AVAILABLE_FIRST = Comparator
+            .comparing(EmployeeAvailabilityResponse::availability).reversed().thenComparing(BY_NAME);
+    private static final Comparator<EmployeeAvailabilityResponse> LEAST_AVAILABLE_FIRST = Comparator
+            .comparing(EmployeeAvailabilityResponse::availability)
+            .thenComparing(EmployeeAvailabilityResponse::peakOccupation, Comparator.reverseOrder())
+            .thenComparing(BY_NAME);
 
     private final EmployeeRepository employeeRepository;
     private final MissionMapper missionMapper;
     private final AbsenceMapper absenceMapper;
 
     /**
-     * Employees matching the search criteria, with their occupation over the period, most available first.
+     * Employees matching the search criteria and the period's filters, with their occupation over the period, most
+     * available first unless another order is asked for.
      * <p>
      * Occupation has to be computed per day from each employee's assignments, so the filtering and paging on
      * availability happen in memory. That is fine at the scale of a company's workforce (thousands of employees).
@@ -67,15 +75,33 @@ public class AvailabilityService {
         }
 
         // An employee who has left by the first day of the period is never available, unless asked for.
-        final var employees = employeeRepository.findAll(EmployeeSpecifications.matching(search, period.from()),
+        final var team = search.wholeTeam() ? employeeRepository.findTeamIds(search.managerId()) : null;
+        final var employees = employeeRepository.findAll(EmployeeSpecifications.matching(search, period.from(), team),
                 Sort.by("lastName", "firstName"));
 
         return employees.stream()
                 .map(employee -> toAvailability(employee, period.from(), period.to()))
                 .filter(availability -> period.minAvailability() == null
                         || availability.availability().compareTo(period.minAvailability()) >= 0)
-                .sorted(MOST_AVAILABLE_FIRST)
+                .filter(availability -> period.missionId() == null || availability.assignments().stream()
+                        .anyMatch(assignment -> assignment.mission().id().equals(period.missionId())))
+                .filter(availability -> period.customerId() == null || availability.assignments().stream()
+                        .anyMatch(assignment -> assignment.mission().customer().id().equals(period.customerId())))
+                .filter(availability -> period.situation() == null || isIn(availability, period.situation()))
+                .sorted(switch (period.order() == null ? AvailabilityOrder.MOST_AVAILABLE : period.order()) {
+                    case MOST_AVAILABLE -> MOST_AVAILABLE_FIRST;
+                    case LEAST_AVAILABLE -> LEAST_AVAILABLE_FIRST;
+                    case NAME -> BY_NAME;
+                })
                 .toList();
+    }
+
+    private static boolean isIn(EmployeeAvailabilityResponse availability, AvailabilitySituation situation) {
+        return switch (situation) {
+            case ON_BENCH -> availability.assignments().isEmpty();
+            case OVERBOOKED -> availability.overbooked();
+            case AWAY -> availability.absentDays() > 0;
+        };
     }
 
     private EmployeeAvailabilityResponse toAvailability(Employee employee, LocalDate from, LocalDate to) {

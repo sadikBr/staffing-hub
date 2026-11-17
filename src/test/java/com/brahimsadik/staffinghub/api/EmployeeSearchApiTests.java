@@ -82,6 +82,25 @@ class EmployeeSearchApiTests extends ApiTestSupport {
     }
 
     @Test
+    void filtersByAManagersWholeTeam() throws Exception {
+        // Ada manages Grace, who manages Linus.
+        mockMvc.perform(put("/api/employees/{id}", grace).contentType(MediaType.APPLICATION_JSON).content("""
+                {"firstName": "Grace", "lastName": "Hopper", "seniority": "MID_LEVEL", "community": "OWL",
+                 "managerId": "%s"}""".formatted(ada))).andExpect(status().isOk());
+        mockMvc.perform(put("/api/employees/{id}", linus).contentType(MediaType.APPLICATION_JSON).content("""
+                {"firstName": "Linus", "lastName": "Torvalds", "seniority": "JUNIOR", "community": "WOLF",
+                 "managerId": "%s"}""".formatted(grace))).andExpect(status().isOk());
+
+        expectNames(get("/api/employees").param("managerId", ada), "Hopper");
+        expectNames(get("/api/employees").param("managerId", ada).param("includeIndirectReports", "true"), "Hopper",
+                "Torvalds");
+        expectNames(get("/api/employees").param("managerId", linus).param("includeIndirectReports", "true"));
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
+                .param("managerId", ada).param("includeIndirectReports", "true"))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
     void hidesFormerEmployeesUnlessAsked() throws Exception {
         final var yesterday = LocalDate.now().minusDays(1).toString();
         final var nextMonth = LocalDate.now().plusMonths(1).toString();

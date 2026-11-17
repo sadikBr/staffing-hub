@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.api;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 class AvailabilityApiTests extends ApiTestSupport {
 
@@ -98,6 +100,49 @@ class AvailabilityApiTests extends ApiTestSupport {
                 // Most available first: Hopper 50%, Lovelace 20%, Leaving 0% (leaves on the 20th). Gone is excluded.
                 .andExpect(jsonPath("$.content[*].lastName", contains("Hopper", "Lovelace", "Leaving")))
                 .andExpect(jsonPath("$.content[?(@.id == '%s')].availability".formatted(leaving)).value(0));
+    }
+
+    @Test
+    void filtersByCustomerMissionAndSituation() throws Exception {
+        final var otherCustomer = createLabelled("/api/customers", "Globex");
+        final var otherMission = create("/api/missions", """
+                {"label": "Portal", "projectName": "Portal", "status": "ONGOING", "customerId": "%s"}"""
+                .formatted(otherCustomer));
+        mockMvc.perform(post("/api/missions/{id}/assignments", otherMission).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"employeeId": "%s", "startDate": "2026-01-05", "endDate": "2026-01-09", "rate": 100}"""
+                        .formatted(linus)))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/employees/{id}/absences", grace).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"type": "HOLIDAY", "startDate": "2026-01-26", "endDate": "2026-01-27"}"""))
+                .andExpect(status().isCreated());
+
+        expectNames(january().param("missionId", mission), "Hopper", "Lovelace");
+        expectNames(january().param("customerId", otherCustomer), "Torvalds");
+        expectNames(january().param("situation", "AWAY"), "Hopper");
+        expectNames(january().param("situation", "OVERBOOKED"));
+        // In February, Linus has no mission: he is on the bench.
+        expectNames(get("/api/employees/availability").param("from", "2026-02-01").param("to", "2026-02-28")
+                .param("situation", "ON_BENCH"), "Torvalds");
+    }
+
+    @Test
+    void ordersResults() throws Exception {
+        expectNames(january().param("order", "LEAST_AVAILABLE"), "Lovelace", "Hopper", "Torvalds");
+        expectNames(january().param("order", "NAME"), "Hopper", "Lovelace", "Torvalds");
+        expectNames(january(), "Torvalds", "Hopper", "Lovelace");
+    }
+
+    private MockHttpServletRequestBuilder january() {
+        return get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31");
+    }
+
+    private void expectNames(MockHttpServletRequestBuilder request, String... lastNames) throws Exception {
+        mockMvc.perform(request).andExpect(status().isOk())
+                .andExpect(lastNames.length == 0
+                        ? jsonPath("$.content", empty())
+                        : jsonPath("$.content[*].lastName", contains(lastNames)));
     }
 
     @Test

@@ -232,7 +232,9 @@
       "includeFormer": "Include former employees",
       "anyLevel": "Any level",
       "pickSkillFirst": "Pick a skill first",
-      "atLeast": "{{level}} or above"
+      "atLeast": "{{level}} or above",
+      "anyManager": "Any manager",
+      "wholeTeam": "Include their whole team"
     },
     "roles": {
       "editTitle": "Edit roles",
@@ -294,7 +296,7 @@
     "minAvailability": "Availability",
     "anyAvailability": "Any",
     "fullyFree": "100%",
-    "resultsFor": "Over {{period}}, most available first",
+    "resultsFor": "Over {{period}} · {{order}}",
     "columns": {
       "availability": "Availability",
       "assignments": "Missions in this period",
@@ -308,7 +310,25 @@
     "nextPeriod": "Next period",
     "fromPrefix": "From",
     "openEndedDisplay_one": "showing the next {{count}} day",
-    "openEndedDisplay_other": "showing the next {{count}} days"
+    "openEndedDisplay_other": "showing the next {{count}} days",
+    "filters": {
+      "anyCustomer": "Any customer",
+      "anyMission": "Any mission",
+      "customer": "Working for customer",
+      "mission": "Working on mission"
+    },
+    "situation": {
+      "label": "Show",
+      "ALL": "Everyone",
+      "ON_BENCH": "On the bench",
+      "OVERBOOKED": "Overbooked",
+      "AWAY": "Away"
+    },
+    "order": {
+      "MOST_AVAILABLE": "Most available first",
+      "LEAST_AVAILABLE": "Least available first",
+      "NAME": "Name (A–Z)"
+    }
   },
   "validation": {
     "required": "This field is required",

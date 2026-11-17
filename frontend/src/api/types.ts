@@ -1,4 +1,6 @@
-import type { components } from './schema';
+import type { components, paths } from './schema';
+
+type AvailabilityParams = paths['/api/employees/availability']['get']['parameters']['query'];
 
 type Schemas = components['schemas'];
 
@@ -23,6 +25,7 @@ export type EmployeeAssignment = Schemas['EmployeeAssignmentResponse'];
 export type EmployeeAvailability = Schemas['EmployeeAvailabilityResponse'];
 export type AvailabilityPage = Schemas['PagedModelEmployeeAvailabilityResponse'];
 export type OverlappingAssignment = Schemas['OverlappingAssignment'];
+export type AvailabilitySituation = NonNullable<AvailabilityParams['situation']>;
 
 export type Mission = Schemas['MissionResponse'];
 export type MissionSummary = Schemas['MissionSummary'];

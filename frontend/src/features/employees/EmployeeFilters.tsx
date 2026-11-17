@@ -1,9 +1,10 @@
 import { Badge, Button, Collapse, Group, Select, TextInput, UnstyledButton } from '@mantine/core';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
-import { IconAdjustmentsHorizontal, IconCheck, IconDoorExit, IconSearch, IconX } from '@tabler/icons-react';
+import { IconAdjustmentsHorizontal, IconCheck, IconDoorExit, IconHierarchy2, IconSearch, IconX } from '@tabler/icons-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRoles, useTechnologies } from '@/api/hooks/reference';
+import { EmployeeSelect } from '@/components/EmployeeSelect';
 import { COMMUNITIES, SENIORITIES, SKILL_LEVELS } from '@/lib/enums';
 import type { EmployeeFilterValues } from './employeeFilterQuery';
 import classes from './EmployeeFilters.module.css';
@@ -15,14 +16,17 @@ interface EmployeeFiltersProps {
   activeCount: number;
   /** Extra controls at the end of the first row (e.g. sorting). */
   extra?: ReactNode;
+  /** Extra fields in the "More filters" panel, and how many of them are set. */
+  extraAdvanced?: ReactNode;
+  extraAdvancedCount?: number;
 }
 
-export function EmployeeFilters({ values, onChange, onClear, activeCount, extra }: EmployeeFiltersProps) {
+export function EmployeeFilters({ values, onChange, onClear, activeCount, extra, extraAdvanced, extraAdvancedCount = 0 }: EmployeeFiltersProps) {
   const { t } = useTranslation();
   const roles = useRoles();
   const technologies = useTechnologies();
-  const advancedKeys = ['roleId', 'technologyId', 'skillId', 'minSkillLevel', 'includeFormer'] as const;
-  const advancedCount = advancedKeys.filter((key) => values[key]).length;
+  const advancedKeys = ['managerId', 'roleId', 'technologyId', 'skillId', 'minSkillLevel', 'includeFormer'] as const;
+  const advancedCount = advancedKeys.filter((key) => values[key]).length + extraAdvancedCount;
   const [advanced, { toggle }] = useDisclosure(advancedCount > 0);
 
   // The search box updates the URL after a short pause, not on every keystroke.
@@ -41,6 +45,7 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount, extra 
     [technologies.data],
   );
   const includeFormer = values.includeFormer === 'true';
+  const wholeTeam = values.includeIndirectReports === 'true';
 
   return (
     <div>
@@ -100,6 +105,12 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount, extra 
 
       <Collapse in={advanced}>
         <div className={classes.advanced}>
+          <EmployeeSelect
+            placeholder={t('employees.filters.anyManager')}
+            aria-label={t('employees.fields.manager')}
+            value={values.managerId || null}
+            onChange={(value) => onChange({ managerId: value ?? '', includeIndirectReports: value ? values.includeIndirectReports : '' })}
+          />
           <Select
             placeholder={t('employees.filters.anyRole')}
             aria-label={t('employees.fields.role')}
@@ -136,6 +147,20 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount, extra 
             disabled={!values.skillId}
             clearable
           />
+          {extraAdvanced}
+        </div>
+        <div className={classes.toggles}>
+          <UnstyledButton
+            className={classes.toggle}
+            data-checked={wholeTeam || undefined}
+            role="switch"
+            aria-checked={wholeTeam}
+            disabled={!values.managerId}
+            onClick={() => onChange({ includeIndirectReports: wholeTeam ? '' : 'true' })}
+          >
+            {wholeTeam ? <IconCheck size={15} stroke={2.4} /> : <IconHierarchy2 size={15} stroke={1.8} />}
+            {t('employees.filters.wholeTeam')}
+          </UnstyledButton>
           <UnstyledButton
             className={classes.toggle}
             data-checked={includeFormer || undefined}

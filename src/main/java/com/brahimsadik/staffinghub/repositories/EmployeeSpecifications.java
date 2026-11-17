@@ -3,7 +3,9 @@ package com.brahimsadik.staffinghub.repositories;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -22,6 +24,15 @@ public final class EmployeeSpecifications {
     }
 
     public static Specification<Employee> matching(EmployeeSearchCriteria criteria, LocalDate today) {
+        return matching(criteria, today, null);
+    }
+
+    /**
+     * @param team with {@link EmployeeSearchCriteria#wholeTeam()}: everyone under the manager, at any depth (see
+     *             {@link EmployeeRepository#findTeamIds}). Ignored otherwise.
+     */
+    public static Specification<Employee> matching(EmployeeSearchCriteria criteria, LocalDate today,
+            Collection<UUID> team) {
         return (root, query, cb) -> {
             final var predicates = new ArrayList<Predicate>();
 
@@ -37,7 +48,9 @@ public final class EmployeeSpecifications {
             if (criteria.community() != null) {
                 predicates.add(cb.equal(root.get("community"), criteria.community()));
             }
-            if (criteria.managerId() != null) {
+            if (criteria.wholeTeam() && team != null) {
+                predicates.add(team.isEmpty() ? cb.disjunction() : root.get("id").in(team));
+            } else if (criteria.managerId() != null) {
                 predicates.add(cb.equal(root.get("manager").get("id"), criteria.managerId()));
             }
             // Each join below is restricted to a single id, so it never duplicates an employee.

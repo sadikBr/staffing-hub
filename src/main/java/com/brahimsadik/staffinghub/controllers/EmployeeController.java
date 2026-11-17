@@ -70,9 +70,11 @@ public class EmployeeController {
     @Operation(summary = "Find who is available over a period, most available first (paginated)",
             description = """
                     Accepts the same filters as the employee search. Availability is what the employee can take on \
-                    for the whole period: 100% minus their peak occupation on any single day. Assignments without \
-                    a start date are ignored, without an end date are ongoing, and without a rate count as 100%. \
-                    An employee who leaves during the period has 0% availability.""")
+                    for the whole period: 100% minus their peak occupation on any single day, reduced by the share of \
+                    working days they are away. Assignments without a start date are ignored, without an end date \
+                    are ongoing, and without a rate count as 100%. An employee who leaves during the period has 0% \
+                    availability. Can also be filtered by customer, mission and situation (on the bench, overbooked, \
+                    away) during the period, and ordered.""")
     public PagedModel<EmployeeAvailabilityResponse> findAvailability(@ParameterObject EmployeeSearchCriteria search,
             @ParameterObject @Validated AvailabilityCriteria period, @ParameterObject Pageable pageable) {
         return new PagedModel<>(availabilityService.findAvailability(search, period, pageable));

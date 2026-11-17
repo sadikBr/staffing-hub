@@ -446,7 +446,7 @@ export interface paths {
         };
         /**
          * Rank the employees who could fill a need, best first
-         * @description Score out of 100: availability over the need's period (45), the mission's required skills (35), seniority (10) and role (10). A criterion the need does not specify counts as met.
+         * @description Score out of 100: how well the employee fits (the mission's required skills 55%, seniority 25%, role 20%), multiplied by the share of the wanted time they are free over the need's period. A criterion the need does not specify counts as met.
          */
         get: operations["findNeedCandidates"];
         put?: never;
@@ -500,7 +500,7 @@ export interface paths {
         };
         /**
          * Find who is available over a period, most available first (paginated)
-         * @description Accepts the same filters as the employee search. Availability is what the employee can take on for the whole period: 100% minus their peak occupation on any single day. Assignments without a start date are ignored, without an end date are ongoing, and without a rate count as 100%. An employee who leaves during the period has 0% availability.
+         * @description Accepts the same filters as the employee search. Availability is what the employee can take on for the whole period: 100% minus their peak occupation on any single day, reduced by the share of working days they are away. Assignments without a start date are ignored, without an end date are ongoing, and without a rate count as 100%. An employee who leaves during the period has 0% availability. Can also be filtered by customer, mission and situation (on the bench, overbooked, away) during the period, and ordered.
          */
         get: operations["findAvailability"];
         put?: never;
@@ -2041,8 +2041,10 @@ export interface operations {
                 skillId?: string;
                 /** @description With skillId: only employees at this level or above */
                 minSkillLevel?: "NOVICE" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
-                /** @description Only the direct staff of this manager */
+                /** @description Only the staff of this manager (direct reports, unless includeIndirectReports) */
                 managerId?: string;
+                /** @description With managerId: also their staff's staff, and so on down the hierarchy (default false) */
+                includeIndirectReports?: boolean;
                 /** @description Include employees whose departure date has passed (default false) */
                 includeFormer?: boolean;
                 /** @description Zero-based page index (0..N) */
@@ -2295,8 +2297,10 @@ export interface operations {
                 skillId?: string;
                 /** @description With skillId: only employees at this level or above */
                 minSkillLevel?: "NOVICE" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
-                /** @description Only the direct staff of this manager */
+                /** @description Only the staff of this manager (direct reports, unless includeIndirectReports) */
                 managerId?: string;
+                /** @description With managerId: also their staff's staff, and so on down the hierarchy (default false) */
+                includeIndirectReports?: boolean;
                 /** @description Include employees whose departure date has passed (default false) */
                 includeFormer?: boolean;
                 /**
@@ -2311,6 +2315,14 @@ export interface operations {
                 to?: string;
                 /** @description Only employees with at least this availability (percent) over the whole period */
                 minAvailability?: number;
+                /** @description Only employees working for this customer during the period */
+                customerId?: string;
+                /** @description Only employees working on this mission during the period */
+                missionId?: string;
+                /** @description Only employees in this situation during the period */
+                situation?: "ON_BENCH" | "OVERBOOKED" | "AWAY";
+                /** @description Order of the results (default MOST_AVAILABLE) */
+                order?: "MOST_AVAILABLE" | "LEAST_AVAILABLE" | "NAME";
                 /** @description Zero-based page index (0..N) */
                 page?: number;
                 /** @description The size of the page to be returned */

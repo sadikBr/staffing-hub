@@ -42,7 +42,7 @@ public class StaffingNeedService {
     static final double ROLE_SHARE = 0.2;
 
     private static final EmployeeSearchCriteria ALL_ACTIVE = new EmployeeSearchCriteria(null, null, null, null, null,
-            null, null, null, false);
+            null, null, null, null, false);
 
     private final MissionRepository missionRepository;
     private final EmployeeRepository employeeRepository;
@@ -63,7 +63,7 @@ public class StaffingNeedService {
         final var from = need.getStartDate() == null ? LocalDate.now(clock) : need.getStartDate();
         final var to = need.getEndDate();
         final var availability = availabilityService.computeAvailability(ALL_ACTIVE,
-                new AvailabilityCriteria(from, to, null));
+                AvailabilityCriteria.period(from, to));
         final var employees = employeeRepository.findAllById(availability.stream().map(EmployeeAvailabilityResponse::id)
                 .toList()).stream().collect(Collectors.toMap(Employee::getId, Function.identity()));
 
