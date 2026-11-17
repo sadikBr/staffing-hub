@@ -251,27 +251,3 @@ h4 {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--sh-text) 18%, transparent) transparent;
 }
-
-/* ---------- Print: only the page content (e.g. a consultant profile) ---------- */
-
-@page {
-  size: A4;
-  margin: 0;
-}
-
-@media print {
-  [data-app-chrome],
-  .no-print {
-    display: none !important;
-  }
-
-  body,
-  body::before {
-    background: #fff !important;
-  }
-
-  [data-app-main] {
-    max-width: none !important;
-    padding: 0 !important;
-  }
-}

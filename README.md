@@ -147,8 +147,6 @@ frontend/src
 - **Filters live in the URL**: every search can be bookmarked and shared.
 - **Timelines**: assignment bars can be dragged to move them, or stretched from either edge to change one date
   (staffers and admins).
-- **Consultant profiles**: each employee page has a **Profile** button: a one-page summary (skills, missions) to print
-  or save as PDF from the browser, with options to hide customer names and include appreciations.
 - **Look and feel**: colors, fonts and spacing are defined once in `src/theme.ts` (Mantine theme plus `--sh-*` CSS
   variables for light and dark mode); global styles are in `src/styles.css`. Each page area sits on a "sheet" (the
   `sh-sheet` class, or `<Section sheet>`): a rounded surface separated by tone and a soft shadow rather than borders.

@@ -657,28 +657,5 @@
     "alreadyOnMission": "Already on this mission",
     "openCount_one": "{{count}} open",
     "openCount_other": "{{count}} open"
-  },
-  "profile": {
-    "open": "Profile",
-    "print": "Print or save as PDF",
-    "printHint": "In the print dialog, choose \"Save as PDF\" to get a file. Turn off headers and footers for a clean page.",
-    "hideCustomers": "Hide customer names",
-    "withAppreciations": "Include appreciations",
-    "customerAlias": "Customer {{letter}}",
-    "missions_one": "mission",
-    "missions_other": "missions",
-    "customers_one": "customer",
-    "customers_other": "customers",
-    "skills_one": "skill",
-    "skills_other": "skills",
-    "technologies_one": "technology",
-    "technologies_other": "technologies",
-    "expertise": "Expertise",
-    "experience": "Experience",
-    "noSkills": "No skills recorded yet.",
-    "noMissions": "No missions yet.",
-    "levelLegend": "Level from 1 (novice) to 5 (expert).",
-    "now": "today",
-    "generated": "Profile generated on {{date}} with Staffing Hub"
   }
 }

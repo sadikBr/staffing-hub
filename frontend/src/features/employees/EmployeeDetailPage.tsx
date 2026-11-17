@@ -1,6 +1,6 @@
 import { Anchor, Button, Group, Menu, Modal, MultiSelect, Skeleton, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconCalendarStats, IconChevronDown, IconDoorExit, IconFileDescription, IconId, IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconCalendarStats, IconChevronDown, IconDoorExit, IconId, IconPencil, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -70,9 +70,6 @@ export default function EmployeeDetailPage() {
         }
         actions={
           <>
-            <Button variant="default" leftSection={<IconFileDescription size={16} />} component={Link} to={`/employees/${data.id}/profile`}>
-              {t('profile.open')}
-            </Button>
             <Button
               variant="default"
               leftSection={<IconCalendarStats size={16} />}

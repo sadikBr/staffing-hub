@@ -14,7 +14,6 @@ export function createRouter() {
         { index: true, lazy: () => import('./features/dashboard/DashboardPage').then(toRoute) },
         { path: 'employees', lazy: () => import('./features/employees/EmployeesPage').then(toRoute) },
         { path: 'employees/:id', lazy: () => import('./features/employees/EmployeeDetailPage').then(toRoute) },
-        { path: 'employees/:id/profile', lazy: () => import('./features/profile/ProfilePage').then(toRoute) },
         { path: 'availability', lazy: () => import('./features/availability/AvailabilityPage').then(toRoute) },
         { path: 'missions', lazy: () => import('./features/missions/MissionsPage').then(toRoute) },
         { path: 'missions/:id', lazy: () => import('./features/missions/MissionDetailPage').then(toRoute) },

@@ -32,7 +32,7 @@ export function AppLayout() {
 
   return (
     <>
-      <header className={classes.header} data-scrolled={scroll.y > 8 || undefined} data-app-chrome>
+      <header className={classes.header} data-scrolled={scroll.y > 8 || undefined}>
         <div className={classes.bar}>
           <Box style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" aria-label={t('layout.toggleMenu')} />
@@ -118,7 +118,7 @@ export function AppLayout() {
         ))}
       </Drawer>
 
-      <main className={classes.content} data-app-main>
+      <main className={classes.content}>
         <Suspense fallback={<PageLoader />}>
           <div key={location.pathname} className="sh-rise">
             <Outlet />

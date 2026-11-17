@@ -934,7 +934,6 @@ export interface components {
             id: string;
             label: string;
             projectName: string;
-            description?: string;
             /** @enum {string} */
             status: "PROSPECT" | "CONFIRMED" | "ONGOING" | "COMPLETED" | "CANCELLED";
             customer: components["schemas"]["CustomerResponse"];

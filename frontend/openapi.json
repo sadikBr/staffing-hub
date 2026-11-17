@@ -3642,9 +3642,6 @@
                     "projectName": {
                         "type": "string"
                     },
-                    "description": {
-                        "type": "string"
-                    },
                     "status": {
                         "type": "string",
                         "enum": [
