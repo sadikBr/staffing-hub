@@ -8,7 +8,8 @@ COPY .mvn .mvn
 COPY mvnw pom.xml ./
 RUN ./mvnw --batch-mode --quiet dependency:go-offline
 COPY src src
-# Tests run in CI (they need Docker for Testcontainers), not during the image build.
+COPY frontend frontend
+# Builds the frontend too (Maven downloads Node). Tests run in CI (they need Docker for Testcontainers).
 RUN ./mvnw --batch-mode --quiet -DskipTests package && cp target/staffing-hub-*.jar app.jar
 
 FROM eclipse-temurin:25-jre

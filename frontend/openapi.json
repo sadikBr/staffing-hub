@@ -1,0 +1,3094 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Staffing Hub API",
+        "description": "Manage employees, their roles, technologies and skills, customers, and missions.",
+        "version": "v1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:18080",
+            "description": "Generated server url"
+        }
+    ],
+    "security": [
+        {
+            "bearer": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Dashboard",
+            "description": "The staffing situation at a glance."
+        },
+        {
+            "name": "Skills",
+            "description": "Specific skills within a technology (e.g. Streams for Java)."
+        },
+        {
+            "name": "Employees",
+            "description": "Employees, their manager, roles, technologies and skill levels."
+        },
+        {
+            "name": "Technologies",
+            "description": "Technologies (e.g. Java, React) and the skills grouped under each one."
+        },
+        {
+            "name": "Application",
+            "description": "Runtime configuration for the frontend."
+        },
+        {
+            "name": "Customers",
+            "description": "Clients that employees can be staffed on."
+        },
+        {
+            "name": "Missions",
+            "description": "Missions for customers, the skills they require, and the employees assigned to them."
+        },
+        {
+            "name": "Roles",
+            "description": "Job roles an employee can hold (e.g. Tech Lead, Developer)."
+        }
+    ],
+    "paths": {
+        "/api/technologies/{id}": {
+            "get": {
+                "tags": [
+                    "Technologies"
+                ],
+                "summary": "Get a technology by id, with its skills",
+                "operationId": "findTechnologyById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TechnologyWithSkillsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Technologies"
+                ],
+                "summary": "Update a technology",
+                "operationId": "updateTechnologyById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TechnologyCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TechnologyResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Technologies"
+                ],
+                "summary": "Delete a technology (and its skills)",
+                "operationId": "delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/skills/{id}": {
+            "get": {
+                "tags": [
+                    "Skills"
+                ],
+                "summary": "Get a skill by id",
+                "operationId": "findSkillById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SkillResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Skills"
+                ],
+                "summary": "Update a skill",
+                "operationId": "updateSkillById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SkillCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SkillResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Skills"
+                ],
+                "summary": "Delete a skill (removes it from every employee)",
+                "operationId": "delete_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/roles/{id}": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Get a role by id",
+                "operationId": "findRoleById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RoleResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Update a role",
+                "operationId": "updateRoleById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RoleCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RoleResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Delete a role",
+                "operationId": "delete_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}": {
+            "get": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Get a mission with its required skills and assignments",
+                "operationId": "findMissionById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Replace a mission's details",
+                "operationId": "updateMissionById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MissionCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Delete a mission (and its required skills and assignments)",
+                "operationId": "delete_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}/skills/{skillId}": {
+            "put": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Require a skill for a mission, or change its required level (optional)",
+                "operationId": "setMissionSkill",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "skillId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetMissionSkillRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Remove a required skill from a mission",
+                "operationId": "removeMissionSkill",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "skillId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}/assignments/{assignmentId}": {
+            "get": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Get one of a mission's assignments",
+                "operationId": "findAssignment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionAssignmentResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Replace an assignment's details",
+                "operationId": "updateAssignment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MissionAssignmentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionAssignmentResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Remove an assignment from a mission",
+                "operationId": "deleteAssignment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/employees/{id}": {
+            "get": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Get an employee by id",
+                "operationId": "findEmployeeById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Replace an employee's details and manager",
+                "operationId": "updateEmployeeById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Delete an employee (their staff are kept, without a manager; refused if they have mission assignments)",
+                "operationId": "delete_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/employees/{id}/technologies": {
+            "put": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Set all of an employee's technologies (removes skills in dropped ones)",
+                "operationId": "setEmployeeTechnologies",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetEmployeeTechnologiesRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/employees/{id}/skills/{skillId}": {
+            "put": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Add a skill to an employee, or change its level",
+                "operationId": "setEmployeeSkillLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "skillId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetEmployeeSkillLevelRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Remove a skill from an employee",
+                "operationId": "removeEmployeeSkill",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "skillId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/employees/{id}/roles": {
+            "put": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Set all of an employee's roles",
+                "operationId": "setEmployeeRoles",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetEmployeeRolesRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/customers/{id}": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Get a customer by id",
+                "operationId": "findCustomerById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Update a customer",
+                "operationId": "updateCustomerById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CustomerCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Delete a customer",
+                "operationId": "delete_5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/api/technologies": {
+            "get": {
+                "tags": [
+                    "Technologies"
+                ],
+                "summary": "List all technologies, with their skills",
+                "operationId": "findAllTechnologies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TechnologyWithSkillsResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Technologies"
+                ],
+                "summary": "Create a technology",
+                "operationId": "create",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TechnologyCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TechnologyResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/skills": {
+            "get": {
+                "tags": [
+                    "Skills"
+                ],
+                "summary": "List all skills, optionally only those of one technology",
+                "operationId": "findAllSkills",
+                "parameters": [
+                    {
+                        "name": "technologyId",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SkillResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Skills"
+                ],
+                "summary": "Create a skill",
+                "operationId": "create_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SkillCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SkillResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "List all roles",
+                "operationId": "findAllRoles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RoleResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Create a role",
+                "operationId": "create_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RoleCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RoleResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/missions": {
+            "get": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "List missions (paginated), optionally filtered by text, customer, status and business unit",
+                "operationId": "findAllMissions",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Part of the label, project name or customer name, case-insensitive",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "customerId",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "PROSPECT",
+                                "CONFIRMED",
+                                "ONGOING",
+                                "COMPLETED",
+                                "CANCELLED"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "businessUnit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "DIGITAL",
+                                "DATA",
+                                "CLOUD",
+                                "INFRASTRUCTURE",
+                                "CONSULTING"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Zero-based page index (0..N)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "The size of the page to be returned",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "default": [
+                                "label,ASC"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PagedModelMissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Create a mission",
+                "operationId": "create_3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MissionCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}/assignments": {
+            "post": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Assign an employee to a mission (allowed even if their skill levels fall short)",
+                "operationId": "createAssignment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MissionAssignmentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionAssignmentResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/employees": {
+            "get": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Search employees (paginated); every filter is optional, former employees are hidden by default",
+                "operationId": "searchEmployees",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Part of the first and/or last name, case-insensitive (e.g. \"ada\", \"ada love\")",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "seniority",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "JUNIOR",
+                                "MID_LEVEL",
+                                "SENIOR"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "community",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "TIGER",
+                                "BEAR",
+                                "SHARK",
+                                "SQUIRREL",
+                                "DRAGON",
+                                "EAGLE",
+                                "IGUANA",
+                                "UNICORN",
+                                "OWL",
+                                "WOLF"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "roleId",
+                        "in": "query",
+                        "description": "Only employees with this role",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "technologyId",
+                        "in": "query",
+                        "description": "Only employees with this technology",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "skillId",
+                        "in": "query",
+                        "description": "Only employees with this skill",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "minSkillLevel",
+                        "in": "query",
+                        "description": "With skillId: only employees at this level or above",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "NOVICE",
+                                "BEGINNER",
+                                "INTERMEDIATE",
+                                "ADVANCED",
+                                "EXPERT"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "managerId",
+                        "in": "query",
+                        "description": "Only the direct staff of this manager",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "includeFormer",
+                        "in": "query",
+                        "description": "Include employees whose departure date has passed (default false)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Zero-based page index (0..N)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "The size of the page to be returned",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "default": [
+                                "lastName,ASC",
+                                "firstName,ASC"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PagedModelEmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Create an employee",
+                "operationId": "create_4",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmployeeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/customers": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "List all customers",
+                "operationId": "findAllCustomers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CustomerResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Create a customer",
+                "operationId": "create_5",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CustomerCreationUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/employees/{id}/assignments": {
+            "get": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "List an employee's mission assignments, most recent first",
+                "operationId": "findEmployeeAssignments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EmployeeAssignmentResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/employees/availability": {
+            "get": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Find who is available over a period, most available first (paginated)",
+                "description": "Accepts the same filters as the employee search. Availability is what the employee can take on for the whole period: 100% minus their peak occupation on any single day. Assignments without a start date are ignored, without an end date are ongoing, and without a rate count as 100%. An employee who leaves during the period has 0% availability.",
+                "operationId": "findAvailability",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Part of the first and/or last name, case-insensitive (e.g. \"ada\", \"ada love\")",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "seniority",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "JUNIOR",
+                                "MID_LEVEL",
+                                "SENIOR"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "community",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "TIGER",
+                                "BEAR",
+                                "SHARK",
+                                "SQUIRREL",
+                                "DRAGON",
+                                "EAGLE",
+                                "IGUANA",
+                                "UNICORN",
+                                "OWL",
+                                "WOLF"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "roleId",
+                        "in": "query",
+                        "description": "Only employees with this role",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "technologyId",
+                        "in": "query",
+                        "description": "Only employees with this technology",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "skillId",
+                        "in": "query",
+                        "description": "Only employees with this skill",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "minSkillLevel",
+                        "in": "query",
+                        "description": "With skillId: only employees at this level or above",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "NOVICE",
+                                "BEGINNER",
+                                "INTERMEDIATE",
+                                "ADVANCED",
+                                "EXPERT"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "managerId",
+                        "in": "query",
+                        "description": "Only the direct staff of this manager",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "includeFormer",
+                        "in": "query",
+                        "description": "Include employees whose departure date has passed (default false)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "First day of the period (included)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "example": "2026-01-01"
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "Last day of the period (included); leave empty for an open-ended period",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "example": "2026-03-31"
+                    },
+                    {
+                        "name": "minAvailability",
+                        "in": "query",
+                        "description": "Only employees with at least this availability (percent) over the whole period",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "maximum": 100.0,
+                            "minimum": 0.0
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Zero-based page index (0..N)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0,
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "The size of the page to be returned",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PagedModelEmployeeAvailabilityResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dashboard": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Key figures for the next 30 days: availability, overbooking, missions, assignments ending",
+                "operationId": "getDashboard",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DashboardResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/config": {
+            "get": {
+                "tags": [
+                    "Application"
+                ],
+                "summary": "How the frontend should log users in (public)",
+                "operationId": "config",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppConfigResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "TechnologyCreationUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "label"
+                ]
+            },
+            "TechnologyResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "label",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "SkillCreationUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "technologyId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "label",
+                    "technologyId"
+                ]
+            },
+            "SkillResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "technologyId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "label",
+                    "technologyId",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "RoleCreationUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "label"
+                ]
+            },
+            "RoleResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "label",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "MissionCreationUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "projectName": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "starUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "businessUnit": {
+                        "type": "string",
+                        "enum": [
+                            "DIGITAL",
+                            "DATA",
+                            "CLOUD",
+                            "INFRASTRUCTURE",
+                            "CONSULTING"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PROSPECT",
+                            "CONFIRMED",
+                            "ONGOING",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "projectManagerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "label",
+                    "projectName",
+                    "status"
+                ]
+            },
+            "AssignmentOccupation": {
+                "type": "object",
+                "properties": {
+                    "peakRate": {
+                        "type": "number"
+                    },
+                    "overbooked": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "overbooked",
+                    "peakRate"
+                ]
+            },
+            "CustomerResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "label",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "EmployeeSummary": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "firstName",
+                    "id",
+                    "lastName"
+                ]
+            },
+            "MissionAssignmentResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "employee": {
+                        "$ref": "#/components/schemas/EmployeeSummary"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rate": {
+                        "type": "number"
+                    },
+                    "appreciation": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "skillMatches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RequiredSkillMatch"
+                        }
+                    },
+                    "employeeOccupation": {
+                        "$ref": "#/components/schemas/AssignmentOccupation"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "employee",
+                    "id",
+                    "skillMatches",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "MissionResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "projectName": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "starUrl": {
+                        "type": "string"
+                    },
+                    "businessUnit": {
+                        "type": "string",
+                        "enum": [
+                            "DIGITAL",
+                            "DATA",
+                            "CLOUD",
+                            "INFRASTRUCTURE",
+                            "CONSULTING"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PROSPECT",
+                            "CONFIRMED",
+                            "ONGOING",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "customer": {
+                        "$ref": "#/components/schemas/CustomerResponse"
+                    },
+                    "projectManager": {
+                        "$ref": "#/components/schemas/EmployeeSummary"
+                    },
+                    "requiredSkills": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MissionSkillResponse"
+                        }
+                    },
+                    "assignments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MissionAssignmentResponse"
+                        }
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "assignments",
+                    "createdAt",
+                    "customer",
+                    "id",
+                    "label",
+                    "projectName",
+                    "requiredSkills",
+                    "status",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "MissionSkillResponse": {
+                "type": "object",
+                "properties": {
+                    "skill": {
+                        "$ref": "#/components/schemas/SkillResponse"
+                    },
+                    "requiredLevel": {
+                        "type": "string",
+                        "enum": [
+                            "NOVICE",
+                            "BEGINNER",
+                            "INTERMEDIATE",
+                            "ADVANCED",
+                            "EXPERT"
+                        ]
+                    }
+                },
+                "required": [
+                    "skill"
+                ]
+            },
+            "RequiredSkillMatch": {
+                "type": "object",
+                "properties": {
+                    "skill": {
+                        "$ref": "#/components/schemas/SkillResponse"
+                    },
+                    "requiredLevel": {
+                        "type": "string",
+                        "enum": [
+                            "NOVICE",
+                            "BEGINNER",
+                            "INTERMEDIATE",
+                            "ADVANCED",
+                            "EXPERT"
+                        ]
+                    },
+                    "employeeLevel": {
+                        "type": "string",
+                        "enum": [
+                            "NOVICE",
+                            "BEGINNER",
+                            "INTERMEDIATE",
+                            "ADVANCED",
+                            "EXPERT"
+                        ]
+                    },
+                    "meetsRequirement": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "meetsRequirement",
+                    "skill"
+                ]
+            },
+            "SetMissionSkillRequest": {
+                "type": "object",
+                "properties": {
+                    "requiredLevel": {
+                        "type": "string",
+                        "enum": [
+                            "NOVICE",
+                            "BEGINNER",
+                            "INTERMEDIATE",
+                            "ADVANCED",
+                            "EXPERT"
+                        ]
+                    }
+                }
+            },
+            "MissionAssignmentRequest": {
+                "type": "object",
+                "properties": {
+                    "employeeId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "format": "int32",
+                        "exclusiveMinimum": 0
+                    },
+                    "rate": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 100
+                    },
+                    "appreciation": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "employeeId"
+                ]
+            },
+            "EmployeeCreationUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "seniority": {
+                        "type": "string",
+                        "enum": [
+                            "JUNIOR",
+                            "MID_LEVEL",
+                            "SENIOR"
+                        ]
+                    },
+                    "community": {
+                        "type": "string",
+                        "enum": [
+                            "TIGER",
+                            "BEAR",
+                            "SHARK",
+                            "SQUIRREL",
+                            "DRAGON",
+                            "EAGLE",
+                            "IGUANA",
+                            "UNICORN",
+                            "OWL",
+                            "WOLF"
+                        ]
+                    },
+                    "managerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "departureDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "community",
+                    "firstName",
+                    "lastName",
+                    "seniority"
+                ]
+            },
+            "EmployeeResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "seniority": {
+                        "type": "string",
+                        "enum": [
+                            "JUNIOR",
+                            "MID_LEVEL",
+                            "SENIOR"
+                        ]
+                    },
+                    "community": {
+                        "type": "string",
+                        "enum": [
+                            "TIGER",
+                            "BEAR",
+                            "SHARK",
+                            "SQUIRREL",
+                            "DRAGON",
+                            "EAGLE",
+                            "IGUANA",
+                            "UNICORN",
+                            "OWL",
+                            "WOLF"
+                        ]
+                    },
+                    "departureDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "manager": {
+                        "$ref": "#/components/schemas/EmployeeSummary"
+                    },
+                    "staff": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EmployeeSummary"
+                        }
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RoleResponse"
+                        }
+                    },
+                    "technologies": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TechnologyResponse"
+                        }
+                    },
+                    "skills": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EmployeeSkillResponse"
+                        }
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "community",
+                    "createdAt",
+                    "firstName",
+                    "id",
+                    "lastName",
+                    "roles",
+                    "seniority",
+                    "skills",
+                    "staff",
+                    "technologies",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "EmployeeSkillResponse": {
+                "type": "object",
+                "properties": {
+                    "skill": {
+                        "$ref": "#/components/schemas/SkillResponse"
+                    },
+                    "level": {
+                        "type": "string",
+                        "enum": [
+                            "NOVICE",
+                            "BEGINNER",
+                            "INTERMEDIATE",
+                            "ADVANCED",
+                            "EXPERT"
+                        ]
+                    }
+                },
+                "required": [
+                    "level",
+                    "skill"
+                ]
+            },
+            "SetEmployeeTechnologiesRequest": {
+                "type": "object",
+                "properties": {
+                    "technologyIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "technologyIds"
+                ]
+            },
+            "SetEmployeeSkillLevelRequest": {
+                "type": "object",
+                "properties": {
+                    "level": {
+                        "type": "string",
+                        "enum": [
+                            "NOVICE",
+                            "BEGINNER",
+                            "INTERMEDIATE",
+                            "ADVANCED",
+                            "EXPERT"
+                        ]
+                    }
+                },
+                "required": [
+                    "level"
+                ]
+            },
+            "SetEmployeeRolesRequest": {
+                "type": "object",
+                "properties": {
+                    "roleIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "roleIds"
+                ]
+            },
+            "CustomerCreationUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "label"
+                ]
+            },
+            "TechnologyWithSkillsResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "skills": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SkillResponse"
+                        }
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "label",
+                    "skills",
+                    "updatedAt",
+                    "version"
+                ]
+            },
+            "PageMetadata": {
+                "type": "object",
+                "properties": {
+                    "size": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "number",
+                    "size",
+                    "totalElements",
+                    "totalPages"
+                ]
+            },
+            "PagedModelMissionResponse": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MissionResponse"
+                        }
+                    },
+                    "page": {
+                        "$ref": "#/components/schemas/PageMetadata"
+                    }
+                },
+                "required": [
+                    "content",
+                    "page"
+                ]
+            },
+            "PagedModelEmployeeResponse": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EmployeeResponse"
+                        }
+                    },
+                    "page": {
+                        "$ref": "#/components/schemas/PageMetadata"
+                    }
+                },
+                "required": [
+                    "content",
+                    "page"
+                ]
+            },
+            "EmployeeAssignmentResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "mission": {
+                        "$ref": "#/components/schemas/MissionSummary"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "rate": {
+                        "type": "number"
+                    },
+                    "appreciation": {
+                        "type": "string"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "skillMatches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RequiredSkillMatch"
+                        }
+                    },
+                    "employeeOccupation": {
+                        "$ref": "#/components/schemas/AssignmentOccupation"
+                    }
+                },
+                "required": [
+                    "id",
+                    "mission",
+                    "skillMatches"
+                ]
+            },
+            "MissionSummary": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "projectName": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PROSPECT",
+                            "CONFIRMED",
+                            "ONGOING",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "customer": {
+                        "$ref": "#/components/schemas/CustomerResponse"
+                    }
+                },
+                "required": [
+                    "customer",
+                    "id",
+                    "label",
+                    "projectName",
+                    "status"
+                ]
+            },
+            "EmployeeAvailabilityResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "seniority": {
+                        "type": "string",
+                        "enum": [
+                            "JUNIOR",
+                            "MID_LEVEL",
+                            "SENIOR"
+                        ]
+                    },
+                    "community": {
+                        "type": "string",
+                        "enum": [
+                            "TIGER",
+                            "BEAR",
+                            "SHARK",
+                            "SQUIRREL",
+                            "DRAGON",
+                            "EAGLE",
+                            "IGUANA",
+                            "UNICORN",
+                            "OWL",
+                            "WOLF"
+                        ]
+                    },
+                    "departureDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "peakOccupation": {
+                        "type": "number"
+                    },
+                    "availability": {
+                        "type": "number"
+                    },
+                    "overbooked": {
+                        "type": "boolean"
+                    },
+                    "assignments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OverlappingAssignment"
+                        }
+                    }
+                },
+                "required": [
+                    "assignments",
+                    "availability",
+                    "community",
+                    "firstName",
+                    "id",
+                    "lastName",
+                    "overbooked",
+                    "peakOccupation",
+                    "seniority"
+                ]
+            },
+            "OverlappingAssignment": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "mission": {
+                        "$ref": "#/components/schemas/MissionSummary"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rate": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "id",
+                    "mission",
+                    "startDate"
+                ]
+            },
+            "PagedModelEmployeeAvailabilityResponse": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EmployeeAvailabilityResponse"
+                        }
+                    },
+                    "page": {
+                        "$ref": "#/components/schemas/PageMetadata"
+                    }
+                },
+                "required": [
+                    "content",
+                    "page"
+                ]
+            },
+            "DashboardResponse": {
+                "type": "object",
+                "properties": {
+                    "from": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "to": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "horizonDays": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "activeEmployees": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "availableEmployees": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "overbookedEmployees": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "missionsByStatus": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    "mostAvailable": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EmployeeAvailabilityResponse"
+                        }
+                    },
+                    "overbooked": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EmployeeAvailabilityResponse"
+                        }
+                    },
+                    "assignmentsEndingSoon": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EndingAssignment"
+                        }
+                    }
+                },
+                "required": [
+                    "activeEmployees",
+                    "assignmentsEndingSoon",
+                    "availableEmployees",
+                    "from",
+                    "horizonDays",
+                    "missionsByStatus",
+                    "mostAvailable",
+                    "overbooked",
+                    "overbookedEmployees",
+                    "to"
+                ]
+            },
+            "EndingAssignment": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "mission": {
+                        "$ref": "#/components/schemas/MissionSummary"
+                    },
+                    "employee": {
+                        "$ref": "#/components/schemas/EmployeeSummary"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rate": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "employee",
+                    "endDate",
+                    "id",
+                    "mission"
+                ]
+            },
+            "AppConfigResponse": {
+                "type": "object",
+                "properties": {
+                    "authEnabled": {
+                        "type": "boolean"
+                    },
+                    "authority": {
+                        "type": "string"
+                    },
+                    "clientId": {
+                        "type": "string"
+                    },
+                    "scope": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "authEnabled",
+                    "scope"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "bearer": {
+                "type": "http",
+                "description": "An access token from the company's login provider.",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

@@ -1,8 +1,14 @@
 # Staffing Hub
 
-REST API for staffing: employees and their skills, customers, missions, and who is assigned to what.
+Staffing application: employees and their skills, customers, missions, who is assigned to what, and who is
+available when.
 
-Spring Boot 4 · Java 25 · PostgreSQL · Flyway · MapStruct · springdoc (Swagger UI)
+- **Backend**: Spring Boot 4 · Java 25 · PostgreSQL · Flyway · MapStruct · springdoc (Swagger UI)
+- **Frontend** (`frontend/`): React 19 · TypeScript · Vite · Mantine · TanStack Query · React Router, with an API
+  client generated from the backend's OpenAPI description
+
+Both ship as **one deployable**: Maven builds the frontend and puts it in the Spring Boot jar, which serves the UI at
+`/` and the API under `/api`.
 
 ## Run locally
 
@@ -13,10 +19,15 @@ Requirements: JDK 25+ and Docker.
 docker compose up -d
 
 # 2. Start the API with the dev profile: no login needed, demo data loaded
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev -DskipFrontend
+
+# 3. In another terminal, start the frontend with hot reload (it forwards /api calls to port 8000)
+cd frontend && npm install && npm run dev
 ```
 
-Then open **http://localhost:8000/swagger-ui.html** to browse and call every endpoint.
+Then open **http://localhost:5173** for the app, and **http://localhost:8000/swagger-ui.html** for the API docs.
+
+To try the packaged app instead (UI served by Spring Boot on port 8000), run step 2 without `-DskipFrontend`.
 
 > Without the `dev` profile, the API requires a login provider (see below) and refuses to start if none is
 > configured. Never use the `dev` profile in production.
@@ -31,23 +42,29 @@ All settings come from environment variables (defaults suit local development):
 | `DB_USERNAME` / `DB_PASSWORD` | Database credentials | `postgres` / `password` |
 | `OIDC_ISSUER_URI` | Company login provider (OpenID Connect issuer). **Required in production.** | — |
 | `OIDC_AUDIENCE` | Only accept tokens issued for this audience (usually the API's client id) | — |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API (the frontend's URL) | — |
+| `OIDC_CLIENT_ID` | Client id of the frontend at the login provider (single-page app, authorization code + PKCE) | — |
+| `OIDC_SCOPE` | Scopes the frontend requests; with Entra ID add the API scope (`api://<api-client-id>/access`) | `openid profile email` |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API (only if the UI is hosted elsewhere) | — |
 | `SPRING_PROFILES_ACTIVE` | `dev` for local development only | — |
 
 Issuer examples: Microsoft Entra ID `https://login.microsoftonline.com/<tenant-id>/v2.0`, Google
 `https://accounts.google.com`, Keycloak `https://<host>/realms/<realm>`.
 
-Clients send `Authorization: Bearer <access token>`. In Swagger UI, use the **Authorize** button. Any authenticated
-user can currently do everything; role-based restrictions can be added in `SecurityConfig`.
+The frontend logs users in itself (redirect to the provider, then back) and sends `Authorization: Bearer <access
+token>` with every API call. Register it at the provider as a single-page application with redirect URI
+`https://<your-host>/`. In Swagger UI, use the **Authorize** button. Any authenticated user can currently do
+everything; role-based restrictions can be added in `SecurityConfig`.
 
 ## API overview
 
 | Resource | Endpoints |
 |---|---|
-| Reference data | `/customers`, `/roles`, `/technologies`, `/skills?technologyId=` (CRUD) |
-| Employees | `/employees` (search + CRUD), `/employees/{id}/roles`, `/technologies`, `/skills/{skillId}`, `/assignments` |
-| Availability | `/employees/availability?from=&to=&minAvailability=` (+ the employee search filters) |
-| Missions | `/missions` (filter by customer, status, business unit), `/missions/{id}/skills/{skillId}`, `/missions/{id}/assignments` |
+| Reference data | `/api/customers`, `/api/roles`, `/api/technologies`, `/api/skills?technologyId=` (CRUD) |
+| Employees | `/api/employees` (search + CRUD), `/api/employees/{id}/roles`, `/technologies`, `/skills/{skillId}`, `/assignments` |
+| Availability | `/api/employees/availability?from=&to=&minAvailability=` (+ the employee search filters) |
+| Missions | `/api/missions` (search, filter by customer, status, business unit), `/api/missions/{id}/skills/{skillId}`, `/api/missions/{id}/assignments` |
+| Dashboard | `/api/dashboard` (next 30 days) |
+| Frontend config | `/api/config` (public: tells the UI how to log in) |
 | Health | `/actuator/health` (+ `/liveness`, `/readiness`) |
 
 Conventions:
@@ -76,13 +93,34 @@ Conventions:
 > Mission status and business unit values are **placeholders** (see `V10__create_missions.sql` and the Java enums).
 > Change them with a new migration (`ALTER TYPE ... ADD VALUE / RENAME VALUE`) before going to production.
 
+## Frontend
+
+```
+frontend/src
+├── api/          generated types (schema.ts), typed client, query hooks, error handling
+├── auth/         login (OpenID Connect) and runtime configuration
+├── components/   shared UI: badges, avatars, availability meters, pickers, empty states...
+├── features/     one folder per area: dashboard, employees, availability, missions, reference data
+├── i18n/         translations: locales/en.json holds every piece of text shown to users
+├── layout/       app shell, navigation, global search (Ctrl/Cmd + K)
+└── lib/          formatting, enums, URL-synced filters
+```
+
+- **API types**: after changing the backend's endpoints or DTOs, run the backend and `npm run api:update` in
+  `frontend/`. Any frontend code the change breaks then fails to compile.
+- **Languages**: copy `src/i18n/locales/en.json` to e.g. `fr.json`, translate the values, and register it in
+  `src/i18n/index.ts`. A language switcher appears in the user menu as soon as there is more than one language.
+- **Filters live in the URL**: every search can be bookmarked and shared.
+
 ## Tests
 
 ```bash
-./mvnw verify
+./mvnw verify                 # backend (Testcontainers, Docker required) + frontend build
+cd frontend && npm test       # frontend unit and component tests
+cd frontend && npm run lint   # frontend lint
 ```
 
-Integration tests run against a real PostgreSQL started automatically with Testcontainers (Docker required).
+Backend integration tests run against a real PostgreSQL started automatically with Testcontainers.
 
 ## Docker
 
@@ -91,7 +129,8 @@ docker build -t staffing-hub .
 docker run -p 8000:8000 -e DB_URL=... -e DB_USERNAME=... -e DB_PASSWORD=... -e OIDC_ISSUER_URI=... staffing-hub
 ```
 
-CI (`.github/workflows/ci.yml`) runs the tests and builds the image on every push to `main` and every pull request.
+CI (`.github/workflows/ci.yml`) lints and tests the frontend, runs the backend tests and builds the image on every
+push to `main` and every pull request.
 
 ## Project layout
 
@@ -105,7 +144,7 @@ src/main/java/.../staffinghub
 ├── dtos/           request/response records (with validation)
 ├── mappers/        MapStruct entity <-> DTO mapping
 ├── exceptions/     error types and the global error handler
-└── config/         security, OpenAPI, clock
+└── config/         security, web (API prefix, frontend serving), OpenAPI, clock
 src/main/resources/db/migration/   schema (Flyway), never edit an applied migration: add a new one
 src/main/resources/db/dev-data/    demo data, dev profile only
 ```

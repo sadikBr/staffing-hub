@@ -1,0 +1,36 @@
+:root {
+  --app-bg: #f6f7fb;
+  --app-surface: #ffffff;
+  --app-border: var(--mantine-color-gray-2);
+}
+
+[data-mantine-color-scheme='dark'] {
+  --app-bg: var(--mantine-color-dark-8);
+  --app-surface: var(--mantine-color-dark-7);
+  --app-border: var(--mantine-color-dark-4);
+}
+
+body {
+  background: var(--app-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Rows that open a detail page. */
+.clickable-row {
+  cursor: pointer;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mantine-shadow-md);
+}
