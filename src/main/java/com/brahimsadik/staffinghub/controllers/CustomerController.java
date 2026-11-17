@@ -39,7 +39,7 @@ public class CustomerController {
     public ResponseEntity<CustomerResponse> create(@Validated @RequestBody CustomerCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = customerService.create(request);
-        final var location = uriBuilder.path("/customers/{id}").buildAndExpand(response.id()).toUri();
+        final var location = uriBuilder.path("/api/customers/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 

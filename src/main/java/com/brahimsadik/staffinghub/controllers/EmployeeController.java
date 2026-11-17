@@ -54,7 +54,7 @@ public class EmployeeController {
     public ResponseEntity<EmployeeResponse> create(@Validated @RequestBody EmployeeCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = employeeService.create(request);
-        final var location = uriBuilder.path("/employees/{id}").buildAndExpand(response.id()).toUri();
+        final var location = uriBuilder.path("/api/employees/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 

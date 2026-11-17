@@ -39,7 +39,7 @@ public class RoleController {
     public ResponseEntity<RoleResponse> create(@Validated @RequestBody RoleCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = roleService.create(request);
-        final var location = uriBuilder.path("/roles/{id}").buildAndExpand(response.id()).toUri();
+        final var location = uriBuilder.path("/api/roles/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 

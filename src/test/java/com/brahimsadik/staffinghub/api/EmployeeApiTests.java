@@ -19,7 +19,7 @@ class EmployeeApiTests extends ApiTestSupport {
 
     @Test
     void createsAnEmployeeWithoutManager() throws Exception {
-        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content(employeeJson("Ada", null)))
+        mockMvc.perform(post("/api/employees").contentType(MediaType.APPLICATION_JSON).content(employeeJson("Ada", null)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.firstName").value("Ada"))
@@ -28,7 +28,7 @@ class EmployeeApiTests extends ApiTestSupport {
 
     @Test
     void rejectsInvalidEmployeeFields() throws Exception {
-        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/employees").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"firstName\": \" \", \"lastName\": \"Doe\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.firstName").exists())
@@ -38,14 +38,14 @@ class EmployeeApiTests extends ApiTestSupport {
 
     @Test
     void rejectsUnknownEnumValues() throws Exception {
-        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON).content("""
+        mockMvc.perform(post("/api/employees").contentType(MediaType.APPLICATION_JSON).content("""
                 {"firstName": "Ada", "lastName": "Doe", "seniority": "GURU", "community": "OWL"}"""))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void rejectsUnknownManager() throws Exception {
-        mockMvc.perform(post("/employees").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/employees").contentType(MediaType.APPLICATION_JSON)
                 .content(employeeJson("Ada", UUID.randomUUID().toString())))
                 .andExpect(status().isUnprocessableContent());
     }
@@ -55,10 +55,10 @@ class EmployeeApiTests extends ApiTestSupport {
         final var boss = createEmployee("Boss", null);
         final var report = createEmployee("Report", boss);
 
-        mockMvc.perform(get("/employees/{id}", boss))
+        mockMvc.perform(get("/api/employees/{id}", boss))
                 .andExpect(jsonPath("$.staff", hasSize(1)))
                 .andExpect(jsonPath("$.staff[0].id").value(report));
-        mockMvc.perform(get("/employees/{id}", report))
+        mockMvc.perform(get("/api/employees/{id}", report))
                 .andExpect(jsonPath("$.manager.id").value(boss));
     }
 
@@ -66,7 +66,7 @@ class EmployeeApiTests extends ApiTestSupport {
     void anEmployeeCannotBeTheirOwnManager() throws Exception {
         final var ada = createEmployee("Ada", null);
 
-        mockMvc.perform(put("/employees/{id}", ada).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/employees/{id}", ada).contentType(MediaType.APPLICATION_JSON)
                 .content(employeeJson("Ada", ada)))
                 .andExpect(status().isUnprocessableContent());
     }
@@ -77,7 +77,7 @@ class EmployeeApiTests extends ApiTestSupport {
         final var middle = createEmployee("Middle", top);
         final var bottom = createEmployee("Bottom", middle);
 
-        mockMvc.perform(put("/employees/{id}", top).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/employees/{id}", top).contentType(MediaType.APPLICATION_JSON)
                 .content(employeeJson("Top", bottom)))
                 .andExpect(status().isUnprocessableContent());
     }
@@ -87,7 +87,7 @@ class EmployeeApiTests extends ApiTestSupport {
         final var boss = createEmployee("Boss", null);
         final var report = createEmployee("Report", boss);
 
-        mockMvc.perform(put("/employees/{id}", report).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/employees/{id}", report).contentType(MediaType.APPLICATION_JSON)
                 .content(employeeJson("Report", null)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.manager").value(nullValue()));
@@ -98,12 +98,12 @@ class EmployeeApiTests extends ApiTestSupport {
         final var boss = createEmployee("Boss", null);
         final var report = createEmployee("Report", boss);
 
-        mockMvc.perform(delete("/employees/{id}", boss)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/employees/{id}", boss)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/employees/{id}", report))
+        mockMvc.perform(get("/api/employees/{id}", report))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.manager").value(nullValue()));
-        mockMvc.perform(get("/employees/{id}", boss)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/employees/{id}", boss)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -112,7 +112,7 @@ class EmployeeApiTests extends ApiTestSupport {
             createEmployee(name, null);
         }
 
-        mockMvc.perform(get("/employees").param("size", "2"))
+        mockMvc.perform(get("/api/employees").param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.page.totalElements").value(3))
@@ -122,15 +122,15 @@ class EmployeeApiTests extends ApiTestSupport {
     @Test
     void setsRolesAndReportsUnknownIds() throws Exception {
         final var ada = createEmployee("Ada", null);
-        final var role = createLabelled("/roles", "Tech Lead");
+        final var role = createLabelled("/api/roles", "Tech Lead");
 
-        mockMvc.perform(put("/employees/{id}/roles", ada).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/employees/{id}/roles", ada).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"roleIds\": [\"%s\"]}".formatted(role)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roles[0].label").value("Tech Lead"));
 
         final var unknown = UUID.randomUUID();
-        mockMvc.perform(put("/employees/{id}/roles", ada).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/employees/{id}/roles", ada).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"roleIds\": [\"%s\", \"%s\"]}".formatted(role, unknown)))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.detail").value("No role exists with the id(s) " + unknown));
@@ -138,14 +138,14 @@ class EmployeeApiTests extends ApiTestSupport {
 
     @Test
     void returnsNotFoundForUnknownEmployee() throws Exception {
-        mockMvc.perform(get("/employees/{id}", UUID.randomUUID()))
+        mockMvc.perform(get("/api/employees/{id}", UUID.randomUUID()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test
     void returnsBadRequestForMalformedId() throws Exception {
-        mockMvc.perform(get("/employees/not-a-uuid")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/employees/not-a-uuid")).andExpect(status().isBadRequest());
     }
 
 }

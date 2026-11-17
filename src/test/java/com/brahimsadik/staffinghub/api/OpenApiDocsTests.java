@@ -17,12 +17,13 @@ class OpenApiDocsTests extends ApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.info.title").value("Staffing Hub API"))
                 .andExpect(jsonPath("$.tags[*].name",
-                        containsInAnyOrder("Customers", "Employees", "Missions", "Roles", "Skills", "Technologies")))
-                .andExpect(jsonPath("$.paths", hasKey("/employees/{id}/skills/{skillId}")))
+                        containsInAnyOrder("Application", "Customers", "Dashboard", "Employees", "Missions", "Roles", "Skills",
+                                "Technologies")))
+                .andExpect(jsonPath("$.paths", hasKey("/api/employees/{id}/skills/{skillId}")))
                 // Filters and pagination appear as separate query parameters, not as "criteria"/"pageable" objects.
-                .andExpect(jsonPath("$.paths['/employees'].get.parameters[*].name",
+                .andExpect(jsonPath("$.paths['/api/employees'].get.parameters[*].name",
                         hasItems("search", "skillId", "minSkillLevel", "includeFormer", "page", "size", "sort")))
-                .andExpect(jsonPath("$.paths['/employees/availability'].get.parameters[*].name",
+                .andExpect(jsonPath("$.paths['/api/employees/availability'].get.parameters[*].name",
                         hasItems("from", "to", "minAvailability", "search", "page")))
                 .andExpect(jsonPath("$.components.schemas.EmployeeCreationUpdateRequest.required").isArray());
     }

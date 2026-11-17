@@ -21,13 +21,13 @@ class AvailabilityApiTests extends ApiTestSupport {
 
     @BeforeEach
     void setUp() throws Exception {
-        final var customer = createLabelled("/customers", "ACME");
-        mission = create("/missions", """
+        final var customer = createLabelled("/api/customers", "ACME");
+        mission = create("/api/missions", """
                 {"label": "Billing", "projectName": "Billing", "status": "ONGOING", "customerId": "%s"}"""
                 .formatted(customer));
-        ada = create("/employees", employeeJson("Ada", "Lovelace", "SENIOR", "OWL", null));
-        grace = create("/employees", employeeJson("Grace", "Hopper", "SENIOR", "OWL", null));
-        linus = create("/employees", employeeJson("Linus", "Torvalds", "JUNIOR", "WOLF", null));
+        ada = create("/api/employees", employeeJson("Ada", "Lovelace", "SENIOR", "OWL", null));
+        grace = create("/api/employees", employeeJson("Grace", "Hopper", "SENIOR", "OWL", null));
+        linus = create("/api/employees", employeeJson("Linus", "Torvalds", "JUNIOR", "WOLF", null));
 
         // In January 2026: Ada is 80% busy at peak, Grace 50%, Linus free.
         assign(ada, "2026-01-01", "2026-01-20", "50");
@@ -37,7 +37,7 @@ class AvailabilityApiTests extends ApiTestSupport {
 
     @Test
     void listsEveryoneMostAvailableFirst() throws Exception {
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31"))
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[*].lastName", contains("Torvalds", "Hopper", "Lovelace")))
                 .andExpect(jsonPath("$.content[2].peakOccupation").value(80))
@@ -50,20 +50,20 @@ class AvailabilityApiTests extends ApiTestSupport {
 
     @Test
     void filtersByMinimumAvailabilityAndOtherCriteria() throws Exception {
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
                 .param("minAvailability", "50"))
                 .andExpect(jsonPath("$.content[*].lastName", contains("Torvalds", "Hopper")));
 
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
                 .param("minAvailability", "50").param("seniority", "SENIOR"))
                 .andExpect(jsonPath("$.content[*].lastName", contains("Hopper")));
     }
 
     @Test
     void ongoingAssignmentsCountInOpenEndedPeriods() throws Exception {
-        mockMvc.perform(get("/employees/availability").param("from", "2027-01-01").param("search", "hopper"))
+        mockMvc.perform(get("/api/employees/availability").param("from", "2027-01-01").param("search", "hopper"))
                 .andExpect(jsonPath("$.content[0].peakOccupation").value(50));
-        mockMvc.perform(get("/employees/availability").param("from", "2027-01-01").param("search", "lovelace"))
+        mockMvc.perform(get("/api/employees/availability").param("from", "2027-01-01").param("search", "lovelace"))
                 .andExpect(jsonPath("$.content[0].peakOccupation").value(0));
     }
 
@@ -79,21 +79,21 @@ class AvailabilityApiTests extends ApiTestSupport {
                 .andExpect(jsonPath("$.employeeOccupation.peakRate").value(120))
                 .andExpect(jsonPath("$.employeeOccupation.overbooked").value(true));
 
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
                 .param("search", "torvalds"))
                 .andExpect(jsonPath("$.content[0].overbooked").value(true))
                 .andExpect(jsonPath("$.content[0].availability").value(0));
-        mockMvc.perform(get("/employees/{id}/assignments", linus))
+        mockMvc.perform(get("/api/employees/{id}/assignments", linus))
                 .andExpect(jsonPath("$[0].employeeOccupation.overbooked").value(true));
     }
 
     @Test
     void employeesLeavingDuringThePeriodAreNotAvailable() throws Exception {
-        final var leaving = create("/employees",
+        final var leaving = create("/api/employees",
                 employeeJson("Soon", "Leaving", "SENIOR", "OWL", "2026-01-20"));
-        create("/employees", employeeJson("Long", "Gone", "SENIOR", "OWL", "2025-06-30"));
+        create("/api/employees", employeeJson("Long", "Gone", "SENIOR", "OWL", "2025-06-30"));
 
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
                 .param("community", "OWL"))
                 // Most available first: Hopper 50%, Lovelace 20%, Leaving 0% (leaves on the 20th). Gone is excluded.
                 .andExpect(jsonPath("$.content[*].lastName", contains("Hopper", "Lovelace", "Leaving")))
@@ -102,11 +102,11 @@ class AvailabilityApiTests extends ApiTestSupport {
 
     @Test
     void validatesThePeriod() throws Exception {
-        mockMvc.perform(get("/employees/availability")).andExpect(status().isBadRequest())
+        mockMvc.perform(get("/api/employees/availability")).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.from").exists());
-        mockMvc.perform(get("/employees/availability").param("from", "2026-02-01").param("to", "2026-01-01"))
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-02-01").param("to", "2026-01-01"))
                 .andExpect(status().isUnprocessableContent());
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("minAvailability", "150"))
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("minAvailability", "150"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -117,19 +117,19 @@ class AvailabilityApiTests extends ApiTestSupport {
         final String assignment = com.jayway.jsonpath.JsonPath.read(body, "$.id");
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .put("/missions/{id}/assignments/{assignmentId}", mission, assignment)
+                .put("/api/missions/{id}/assignments/{assignmentId}", mission, assignment)
                 .contentType(MediaType.APPLICATION_JSON).content("""
                         {"employeeId": "%s", "startDate": "2026-01-01", "endDate": "2026-01-31", "rate": 100}"""
                         .formatted(grace)))
                 .andExpect(jsonPath("$.employeeOccupation.peakRate").value(150));
 
-        mockMvc.perform(get("/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
+        mockMvc.perform(get("/api/employees/availability").param("from", "2026-01-01").param("to", "2026-01-31")
                 .param("search", "torvalds"))
                 .andExpect(jsonPath("$.content[0].peakOccupation").value(0));
     }
 
     private ResultActions assign(String employee, String start, String end, String rate) throws Exception {
-        return mockMvc.perform(post("/missions/{id}/assignments", mission).contentType(MediaType.APPLICATION_JSON)
+        return mockMvc.perform(post("/api/missions/{id}/assignments", mission).contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {"employeeId": "%s", "startDate": %s, "endDate": %s, "rate": %s}"""
                         .formatted(employee, quoted(start), quoted(end), rate)));

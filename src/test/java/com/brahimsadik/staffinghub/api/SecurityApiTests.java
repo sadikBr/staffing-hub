@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +34,20 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void apiRequiresAnAccessToken() throws Exception {
-        anonymous.perform(get("/employees")).andExpect(status().isUnauthorized());
-        anonymous.perform(post("/roles").contentType(MediaType.APPLICATION_JSON).content("{\"label\": \"X\"}"))
+        anonymous.perform(get("/api/employees")).andExpect(status().isUnauthorized());
+        anonymous.perform(post("/api/roles").contentType(MediaType.APPLICATION_JSON).content("{\"label\": \"X\"}"))
                 .andExpect(status().isUnauthorized());
-        anonymous.perform(get("/employees").with(jwt())).andExpect(status().isOk());
+        anonymous.perform(get("/api/employees").with(jwt())).andExpect(status().isOk());
+    }
+
+    @Test
+    void frontendAndItsConfigurationArePublic() throws Exception {
+        anonymous.perform(get("/api/config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authEnabled").value(true))
+                .andExpect(jsonPath("$.authority").value("https://login.example.test"));
+        anonymous.perform(get("/")).andExpect(status().isOk());
+        anonymous.perform(get("/employees/123")).andExpect(status().isOk());
     }
 
     @Test
@@ -48,11 +59,11 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void allowsConfiguredBrowserOriginsOnly() throws Exception {
-        anonymous.perform(options("/employees").header("Origin", "https://staffing.example.com")
+        anonymous.perform(options("/api/employees").header("Origin", "https://staffing.example.com")
                 .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "https://staffing.example.com"));
-        anonymous.perform(options("/employees").header("Origin", "https://evil.example.com")
+        anonymous.perform(options("/api/employees").header("Origin", "https://evil.example.com")
                 .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isForbidden());
     }

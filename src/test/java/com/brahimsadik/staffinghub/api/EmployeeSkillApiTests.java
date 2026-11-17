@@ -23,8 +23,8 @@ class EmployeeSkillApiTests extends ApiTestSupport {
     @BeforeEach
     void setUp() throws Exception {
         employee = createEmployee("Ada", null);
-        java = createLabelled("/technologies", "Java");
-        streams = create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
+        java = createLabelled("/api/technologies", "Java");
+        streams = create("/api/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
     }
 
     @Test
@@ -46,10 +46,10 @@ class EmployeeSkillApiTests extends ApiTestSupport {
                 .andExpect(jsonPath("$.skills", hasSize(1)))
                 .andExpect(jsonPath("$.skills[0].level").value("EXPERT"));
 
-        mockMvc.perform(delete("/employees/{id}/skills/{skillId}", employee, streams))
+        mockMvc.perform(delete("/api/employees/{id}/skills/{skillId}", employee, streams))
                 .andExpect(status().isNoContent());
-        mockMvc.perform(get("/employees/{id}", employee)).andExpect(jsonPath("$.skills", hasSize(0)));
-        mockMvc.perform(delete("/employees/{id}/skills/{skillId}", employee, streams))
+        mockMvc.perform(get("/api/employees/{id}", employee)).andExpect(jsonPath("$.skills", hasSize(0)));
+        mockMvc.perform(delete("/api/employees/{id}/skills/{skillId}", employee, streams))
                 .andExpect(status().isNotFound());
     }
 
@@ -68,9 +68,9 @@ class EmployeeSkillApiTests extends ApiTestSupport {
     void anAssignedSkillCannotMoveToAnotherTechnology() throws Exception {
         setTechnologies(java);
         setLevel(streams, "ADVANCED");
-        final var python = createLabelled("/technologies", "Python");
+        final var python = createLabelled("/api/technologies", "Python");
 
-        mockMvc.perform(put("/skills/{id}", streams).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/skills/{id}", streams).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(python)))
                 .andExpect(status().isConflict());
     }
@@ -80,20 +80,20 @@ class EmployeeSkillApiTests extends ApiTestSupport {
         setTechnologies(java);
         setLevel(streams, "ADVANCED");
 
-        mockMvc.perform(delete("/skills/{id}", streams)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/skills/{id}", streams)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/employees/{id}", employee)).andExpect(jsonPath("$.skills", hasSize(0)));
+        mockMvc.perform(get("/api/employees/{id}", employee)).andExpect(jsonPath("$.skills", hasSize(0)));
     }
 
     private ResultActions setLevel(String skill, String level)
             throws Exception {
-        return mockMvc.perform(put("/employees/{id}/skills/{skillId}", employee, skill)
+        return mockMvc.perform(put("/api/employees/{id}/skills/{skillId}", employee, skill)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"level\": \"%s\"}".formatted(level)));
     }
 
     private ResultActions setTechnologies(String... ids) throws Exception {
         final var json = String.join(", ", Arrays.stream(ids).map("\"%s\""::formatted).toList());
-        return mockMvc.perform(put("/employees/{id}/technologies", employee)
+        return mockMvc.perform(put("/api/employees/{id}/technologies", employee)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"technologyIds\": [%s]}".formatted(json)));
     }
 

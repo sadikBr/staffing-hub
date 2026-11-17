@@ -35,9 +35,9 @@ class DevProfileTests {
                 .isEqualTo(10);
 
         // No token: the default test JWT is not configured for this class.
-        mockMvc.perform(get("/employees")).andExpect(status().isOk())
+        mockMvc.perform(get("/api/employees")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements").value(11)); // one former employee is hidden
-        mockMvc.perform(get("/missions/00000000-0000-0000-0006-000000000001"))
+        mockMvc.perform(get("/api/missions/00000000-0000-0000-0006-000000000001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assignments.length()", greaterThan(0)));
     }

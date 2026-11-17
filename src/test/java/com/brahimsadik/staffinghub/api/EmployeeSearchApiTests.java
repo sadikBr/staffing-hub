@@ -23,14 +23,14 @@ class EmployeeSearchApiTests extends ApiTestSupport {
 
     @BeforeEach
     void setUp() throws Exception {
-        ada = create("/employees", employeeJson("Ada", "Lovelace", "SENIOR", "OWL", null));
-        grace = create("/employees", employeeJson("Grace", "Hopper", "MID_LEVEL", "OWL", null));
-        linus = create("/employees", employeeJson("Linus", "Torvalds", "JUNIOR", "WOLF", null));
+        ada = create("/api/employees", employeeJson("Ada", "Lovelace", "SENIOR", "OWL", null));
+        grace = create("/api/employees", employeeJson("Grace", "Hopper", "MID_LEVEL", "OWL", null));
+        linus = create("/api/employees", employeeJson("Linus", "Torvalds", "JUNIOR", "WOLF", null));
 
-        java = createLabelled("/technologies", "Java");
-        streams = create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
+        java = createLabelled("/api/technologies", "Java");
+        streams = create("/api/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
         for (final var employee : new String[] { ada, grace }) {
-            mockMvc.perform(put("/employees/{id}/technologies", employee).contentType(MediaType.APPLICATION_JSON)
+            mockMvc.perform(put("/api/employees/{id}/technologies", employee).contentType(MediaType.APPLICATION_JSON)
                     .content("{\"technologyIds\": [\"%s\"]}".formatted(java)));
         }
         setSkill(ada, "EXPERT");
@@ -39,57 +39,57 @@ class EmployeeSearchApiTests extends ApiTestSupport {
 
     @Test
     void searchesByNameInAnyOrderAndCase() throws Exception {
-        expectNames(get("/employees").param("search", "LOVE"), "Lovelace");
-        expectNames(get("/employees").param("search", "ada love"), "Lovelace");
-        expectNames(get("/employees").param("search", "hopper grace"), "Hopper");
-        expectNames(get("/employees").param("search", "%"));
+        expectNames(get("/api/employees").param("search", "LOVE"), "Lovelace");
+        expectNames(get("/api/employees").param("search", "ada love"), "Lovelace");
+        expectNames(get("/api/employees").param("search", "hopper grace"), "Hopper");
+        expectNames(get("/api/employees").param("search", "%"));
     }
 
     @Test
     void filtersBySeniorityAndCommunity() throws Exception {
-        expectNames(get("/employees").param("community", "OWL"), "Hopper", "Lovelace");
-        expectNames(get("/employees").param("community", "OWL").param("seniority", "SENIOR"), "Lovelace");
+        expectNames(get("/api/employees").param("community", "OWL"), "Hopper", "Lovelace");
+        expectNames(get("/api/employees").param("community", "OWL").param("seniority", "SENIOR"), "Lovelace");
     }
 
     @Test
     void filtersByTechnologyAndRole() throws Exception {
-        final var lead = createLabelled("/roles", "Tech Lead");
-        mockMvc.perform(put("/employees/{id}/roles", linus).contentType(MediaType.APPLICATION_JSON)
+        final var lead = createLabelled("/api/roles", "Tech Lead");
+        mockMvc.perform(put("/api/employees/{id}/roles", linus).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"roleIds\": [\"%s\"]}".formatted(lead)));
 
-        expectNames(get("/employees").param("technologyId", java), "Hopper", "Lovelace");
-        expectNames(get("/employees").param("roleId", lead), "Torvalds");
+        expectNames(get("/api/employees").param("technologyId", java), "Hopper", "Lovelace");
+        expectNames(get("/api/employees").param("roleId", lead), "Torvalds");
     }
 
     @Test
     void filtersBySkillAndMinimumLevel() throws Exception {
-        expectNames(get("/employees").param("skillId", streams), "Hopper", "Lovelace");
-        expectNames(get("/employees").param("skillId", streams).param("minSkillLevel", "ADVANCED"), "Lovelace");
-        expectNames(get("/employees").param("skillId", streams).param("minSkillLevel", "BEGINNER"),
+        expectNames(get("/api/employees").param("skillId", streams), "Hopper", "Lovelace");
+        expectNames(get("/api/employees").param("skillId", streams).param("minSkillLevel", "ADVANCED"), "Lovelace");
+        expectNames(get("/api/employees").param("skillId", streams).param("minSkillLevel", "BEGINNER"),
                 "Hopper", "Lovelace");
 
-        mockMvc.perform(get("/employees").param("minSkillLevel", "ADVANCED"))
+        mockMvc.perform(get("/api/employees").param("minSkillLevel", "ADVANCED"))
                 .andExpect(status().isUnprocessableContent());
     }
 
     @Test
     void filtersByManager() throws Exception {
-        mockMvc.perform(put("/employees/{id}", grace).contentType(MediaType.APPLICATION_JSON).content("""
+        mockMvc.perform(put("/api/employees/{id}", grace).contentType(MediaType.APPLICATION_JSON).content("""
                 {"firstName": "Grace", "lastName": "Hopper", "seniority": "MID_LEVEL", "community": "OWL",
                  "managerId": "%s"}""".formatted(ada)));
 
-        expectNames(get("/employees").param("managerId", ada), "Hopper");
+        expectNames(get("/api/employees").param("managerId", ada), "Hopper");
     }
 
     @Test
     void hidesFormerEmployeesUnlessAsked() throws Exception {
         final var yesterday = LocalDate.now().minusDays(1).toString();
         final var nextMonth = LocalDate.now().plusMonths(1).toString();
-        create("/employees", employeeJson("Old", "Former", "SENIOR", "OWL", yesterday));
-        create("/employees", employeeJson("Soon", "Leaving", "SENIOR", "OWL", nextMonth));
+        create("/api/employees", employeeJson("Old", "Former", "SENIOR", "OWL", yesterday));
+        create("/api/employees", employeeJson("Soon", "Leaving", "SENIOR", "OWL", nextMonth));
 
-        expectNames(get("/employees").param("community", "OWL"), "Hopper", "Leaving", "Lovelace");
-        expectNames(get("/employees").param("community", "OWL").param("includeFormer", "true"),
+        expectNames(get("/api/employees").param("community", "OWL"), "Hopper", "Leaving", "Lovelace");
+        expectNames(get("/api/employees").param("community", "OWL").param("includeFormer", "true"),
                 "Former", "Hopper", "Leaving", "Lovelace");
     }
 
@@ -103,7 +103,7 @@ class EmployeeSearchApiTests extends ApiTestSupport {
     }
 
     private void setSkill(String employee, String level) throws Exception {
-        mockMvc.perform(put("/employees/{id}/skills/{skillId}", employee, streams)
+        mockMvc.perform(put("/api/employees/{id}/skills/{skillId}", employee, streams)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"level\": \"%s\"}".formatted(level)))
                 .andExpect(status().isOk());
     }

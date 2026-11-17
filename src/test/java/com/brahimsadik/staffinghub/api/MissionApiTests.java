@@ -26,10 +26,10 @@ class MissionApiTests extends ApiTestSupport {
 
     @BeforeEach
     void setUp() throws Exception {
-        customer = createLabelled("/customers", "ACME");
+        customer = createLabelled("/api/customers", "ACME");
         employee = createEmployee("Ada", null);
-        java = createLabelled("/technologies", "Java");
-        streams = create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
+        java = createLabelled("/api/technologies", "Java");
+        streams = create("/api/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
     }
 
     // --- Missions ---------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ class MissionApiTests extends ApiTestSupport {
     void createsAndUpdatesAMission() throws Exception {
         final var mission = createMission("Billing revamp", "ONGOING", "DATA", employee);
 
-        mockMvc.perform(get("/missions/{id}", mission))
+        mockMvc.perform(get("/api/missions/{id}", mission))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.label").value("Billing revamp"))
                 .andExpect(jsonPath("$.customer.label").value("ACME"))
@@ -47,7 +47,7 @@ class MissionApiTests extends ApiTestSupport {
                 .andExpect(jsonPath("$.requiredSkills", hasSize(0)))
                 .andExpect(jsonPath("$.assignments", hasSize(0)));
 
-        mockMvc.perform(put("/missions/{id}", mission).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/missions/{id}", mission).contentType(MediaType.APPLICATION_JSON)
                 .content(missionJson("Billing revamp v2", "COMPLETED", null, null)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.label").value("Billing revamp v2"))
@@ -58,7 +58,7 @@ class MissionApiTests extends ApiTestSupport {
 
     @Test
     void validatesMissions() throws Exception {
-        mockMvc.perform(post("/missions").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/missions").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"label\": \"\", \"starUrl\": \"not a url\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.label").exists())
@@ -70,31 +70,31 @@ class MissionApiTests extends ApiTestSupport {
 
     @Test
     void rejectsUnknownCustomerOrProjectManager() throws Exception {
-        mockMvc.perform(post("/missions").contentType(MediaType.APPLICATION_JSON).content(
+        mockMvc.perform(post("/api/missions").contentType(MediaType.APPLICATION_JSON).content(
                 missionJson("M", "ONGOING", null, null).replace(customer, UUID.randomUUID().toString())))
                 .andExpect(status().isUnprocessableContent());
-        mockMvc.perform(post("/missions").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/missions").contentType(MediaType.APPLICATION_JSON)
                 .content(missionJson("M", "ONGOING", null, UUID.randomUUID().toString())))
                 .andExpect(status().isUnprocessableContent());
     }
 
     @Test
     void filtersAndPaginatesMissions() throws Exception {
-        final var otherCustomer = createLabelled("/customers", "Globex");
+        final var otherCustomer = createLabelled("/api/customers", "Globex");
         createMission("A", "ONGOING", "DATA", null);
         createMission("B", "ONGOING", "CLOUD", null);
         createMission("C", "COMPLETED", "DATA", null);
-        create("/missions", missionJson("D", "ONGOING", "DATA", null).replace(customer, otherCustomer));
+        create("/api/missions", missionJson("D", "ONGOING", "DATA", null).replace(customer, otherCustomer));
 
-        mockMvc.perform(get("/missions")).andExpect(jsonPath("$.page.totalElements").value(4));
-        mockMvc.perform(get("/missions").param("status", "ONGOING"))
+        mockMvc.perform(get("/api/missions")).andExpect(jsonPath("$.page.totalElements").value(4));
+        mockMvc.perform(get("/api/missions").param("status", "ONGOING"))
                 .andExpect(jsonPath("$.page.totalElements").value(3));
-        mockMvc.perform(get("/missions").param("status", "ONGOING").param("businessUnit", "DATA"))
+        mockMvc.perform(get("/api/missions").param("status", "ONGOING").param("businessUnit", "DATA"))
                 .andExpect(jsonPath("$.content[*].label").value(org.hamcrest.Matchers.contains("A", "D")));
-        mockMvc.perform(get("/missions").param("customerId", otherCustomer))
+        mockMvc.perform(get("/api/missions").param("customerId", otherCustomer))
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].label").value("D"));
-        mockMvc.perform(get("/missions").param("size", "2"))
+        mockMvc.perform(get("/api/missions").param("size", "2"))
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.page.totalPages").value(2));
     }
@@ -104,10 +104,10 @@ class MissionApiTests extends ApiTestSupport {
         final var mission = createMission("M", "ONGOING", null, null);
         assign(mission, assignmentJson(employee, null, null, null, null)).andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/missions/{id}", mission)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/missions/{id}", mission)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/missions/{id}", mission)).andExpect(status().isNotFound());
-        mockMvc.perform(get("/employees/{id}/assignments", employee)).andExpect(jsonPath("$", hasSize(0)));
+        mockMvc.perform(get("/api/missions/{id}", mission)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/employees/{id}/assignments", employee)).andExpect(jsonPath("$", hasSize(0)));
     }
 
     // --- Required skills --------------------------------------------------------------------------------------
@@ -116,32 +116,32 @@ class MissionApiTests extends ApiTestSupport {
     void requiredLevelIsOptional() throws Exception {
         final var mission = createMission("M", "ONGOING", null, null);
 
-        mockMvc.perform(put("/missions/{id}/skills/{skillId}", mission, streams))
+        mockMvc.perform(put("/api/missions/{id}/skills/{skillId}", mission, streams))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.requiredSkills", hasSize(1)))
                 .andExpect(jsonPath("$.requiredSkills[0].skill.label").value("Streams"))
                 .andExpect(jsonPath("$.requiredSkills[0].requiredLevel").value(nullValue()));
 
-        mockMvc.perform(put("/missions/{id}/skills/{skillId}", mission, streams)
+        mockMvc.perform(put("/api/missions/{id}/skills/{skillId}", mission, streams)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"requiredLevel\": \"ADVANCED\"}"))
                 .andExpect(jsonPath("$.requiredSkills", hasSize(1)))
                 .andExpect(jsonPath("$.requiredSkills[0].requiredLevel").value("ADVANCED"));
 
-        mockMvc.perform(delete("/missions/{id}/skills/{skillId}", mission, streams))
+        mockMvc.perform(delete("/api/missions/{id}/skills/{skillId}", mission, streams))
                 .andExpect(status().isNoContent());
-        mockMvc.perform(get("/missions/{id}", mission)).andExpect(jsonPath("$.requiredSkills", hasSize(0)));
-        mockMvc.perform(delete("/missions/{id}/skills/{skillId}", mission, streams))
+        mockMvc.perform(get("/api/missions/{id}", mission)).andExpect(jsonPath("$.requiredSkills", hasSize(0)));
+        mockMvc.perform(delete("/api/missions/{id}/skills/{skillId}", mission, streams))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void deletingASkillRemovesItFromMissions() throws Exception {
         final var mission = createMission("M", "ONGOING", null, null);
-        mockMvc.perform(put("/missions/{id}/skills/{skillId}", mission, streams)).andExpect(status().isOk());
+        mockMvc.perform(put("/api/missions/{id}/skills/{skillId}", mission, streams)).andExpect(status().isOk());
 
-        mockMvc.perform(delete("/skills/{id}", streams)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/skills/{id}", streams)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/missions/{id}", mission)).andExpect(jsonPath("$.requiredSkills", hasSize(0)));
+        mockMvc.perform(get("/api/missions/{id}", mission)).andExpect(jsonPath("$.requiredSkills", hasSize(0)));
     }
 
     // --- Assignments ------------------------------------------------------------------------------------------
@@ -149,14 +149,14 @@ class MissionApiTests extends ApiTestSupport {
     @Test
     void assignsEmployeesEvenBelowTheRequiredLevelAndReportsTheGap() throws Exception {
         final var mission = createMission("M", "ONGOING", null, null);
-        final var lambdas = create("/skills", "{\"label\": \"Lambdas\", \"technologyId\": \"%s\"}".formatted(java));
-        final var generics = create("/skills", "{\"label\": \"Generics\", \"technologyId\": \"%s\"}".formatted(java));
+        final var lambdas = create("/api/skills", "{\"label\": \"Lambdas\", \"technologyId\": \"%s\"}".formatted(java));
+        final var generics = create("/api/skills", "{\"label\": \"Generics\", \"technologyId\": \"%s\"}".formatted(java));
         requireSkill(mission, streams, "EXPERT");
         requireSkill(mission, lambdas, null);
         requireSkill(mission, generics, "BEGINNER");
 
         // Ada: Streams INTERMEDIATE (below EXPERT), Lambdas NOVICE (any level is fine), no Generics.
-        mockMvc.perform(put("/employees/{id}/technologies", employee).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/employees/{id}/technologies", employee).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"technologyIds\": [\"%s\"]}".formatted(java)));
         setEmployeeSkill(streams, "INTERMEDIATE");
         setEmployeeSkill(lambdas, "NOVICE");
@@ -181,10 +181,10 @@ class MissionApiTests extends ApiTestSupport {
                 .andReturn().getResponse().getContentAsString();
 
         final String assignmentId = com.jayway.jsonpath.JsonPath.read(assignment, "$.id");
-        mockMvc.perform(get("/missions/{id}/assignments/{assignmentId}", mission, assignmentId))
+        mockMvc.perform(get("/api/missions/{id}/assignments/{assignmentId}", mission, assignmentId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(assignmentId));
-        mockMvc.perform(get("/missions/{id}", mission)).andExpect(jsonPath("$.assignments", hasSize(1)));
+        mockMvc.perform(get("/api/missions/{id}", mission)).andExpect(jsonPath("$.assignments", hasSize(1)));
     }
 
     @Test
@@ -222,15 +222,15 @@ class MissionApiTests extends ApiTestSupport {
                 .andReturn().getResponse().getContentAsString();
         final String assignmentId = com.jayway.jsonpath.JsonPath.read(body, "$.id");
 
-        mockMvc.perform(put("/missions/{id}/assignments/{assignmentId}", mission, assignmentId)
+        mockMvc.perform(put("/api/missions/{id}/assignments/{assignmentId}", mission, assignmentId)
                 .contentType(MediaType.APPLICATION_JSON).content(assignmentJson(other, null, null, 5, "80")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.employee.id").value(other))
                 .andExpect(jsonPath("$.rate").value(80));
 
-        mockMvc.perform(delete("/missions/{id}/assignments/{assignmentId}", mission, assignmentId))
+        mockMvc.perform(delete("/api/missions/{id}/assignments/{assignmentId}", mission, assignmentId))
                 .andExpect(status().isNoContent());
-        mockMvc.perform(get("/missions/{id}/assignments/{assignmentId}", mission, assignmentId))
+        mockMvc.perform(get("/api/missions/{id}/assignments/{assignmentId}", mission, assignmentId))
                 .andExpect(status().isNotFound());
     }
 
@@ -242,7 +242,7 @@ class MissionApiTests extends ApiTestSupport {
                 .andReturn().getResponse().getContentAsString();
         final String assignmentId = com.jayway.jsonpath.JsonPath.read(body, "$.id");
 
-        mockMvc.perform(get("/missions/{id}/assignments/{assignmentId}", otherMission, assignmentId))
+        mockMvc.perform(get("/api/missions/{id}/assignments/{assignmentId}", otherMission, assignmentId))
                 .andExpect(status().isNotFound());
     }
 
@@ -262,12 +262,12 @@ class MissionApiTests extends ApiTestSupport {
         assign(undated, assignmentJson(employee, null, null, null, null));
         assign(newer, assignmentJson(employee, "2026-01-01", null, null, null));
 
-        mockMvc.perform(get("/employees/{id}/assignments", employee))
+        mockMvc.perform(get("/api/employees/{id}/assignments", employee))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].mission.label")
                         .value(org.hamcrest.Matchers.contains("Newer", "Older", "Undated")))
                 .andExpect(jsonPath("$[0].mission.customer.label").value("ACME"));
-        mockMvc.perform(get("/employees/{id}/assignments", UUID.randomUUID())).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/employees/{id}/assignments", UUID.randomUUID())).andExpect(status().isNotFound());
     }
 
     // --- Effects on other resources ---------------------------------------------------------------------------
@@ -277,16 +277,16 @@ class MissionApiTests extends ApiTestSupport {
         final var mission = createMission("M", "ONGOING", null, null);
         assign(mission, assignmentJson(employee, null, null, null, null));
 
-        mockMvc.perform(delete("/employees/{id}", employee)).andExpect(status().isConflict());
+        mockMvc.perform(delete("/api/employees/{id}", employee)).andExpect(status().isConflict());
     }
 
     @Test
     void deletingTheProjectManagerLeavesTheMissionWithoutOne() throws Exception {
         final var mission = createMission("M", "ONGOING", null, employee);
 
-        mockMvc.perform(delete("/employees/{id}", employee)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/employees/{id}", employee)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/missions/{id}", mission))
+        mockMvc.perform(get("/api/missions/{id}", mission))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.projectManager").value(nullValue()));
     }
@@ -295,14 +295,14 @@ class MissionApiTests extends ApiTestSupport {
     void aCustomerWithMissionsCannotBeDeleted() throws Exception {
         createMission("M", "ONGOING", null, null);
 
-        mockMvc.perform(delete("/customers/{id}", customer)).andExpect(status().isConflict());
+        mockMvc.perform(delete("/api/customers/{id}", customer)).andExpect(status().isConflict());
     }
 
     // --- Helpers ----------------------------------------------------------------------------------------------
 
     private String createMission(String label, String status, String businessUnit, String projectManagerId)
             throws Exception {
-        return create("/missions", missionJson(label, status, businessUnit, projectManagerId));
+        return create("/api/missions", missionJson(label, status, businessUnit, projectManagerId));
     }
 
     private String missionJson(String label, String status, String businessUnit, String projectManagerId) {
@@ -320,18 +320,18 @@ class MissionApiTests extends ApiTestSupport {
     }
 
     private ResultActions assign(String mission, String json) throws Exception {
-        return mockMvc.perform(post("/missions/{id}/assignments", mission)
+        return mockMvc.perform(post("/api/missions/{id}/assignments", mission)
                 .contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
     private void requireSkill(String mission, String skill, String level) throws Exception {
-        mockMvc.perform(put("/missions/{id}/skills/{skillId}", mission, skill)
+        mockMvc.perform(put("/api/missions/{id}/skills/{skillId}", mission, skill)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"requiredLevel\": %s}".formatted(quoted(level))))
                 .andExpect(status().isOk());
     }
 
     private void setEmployeeSkill(String skill, String level) throws Exception {
-        mockMvc.perform(put("/employees/{id}/skills/{skillId}", employee, skill)
+        mockMvc.perform(put("/api/employees/{id}/skills/{skillId}", employee, skill)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"level\": \"%s\"}".formatted(level)))
                 .andExpect(status().isOk());
     }

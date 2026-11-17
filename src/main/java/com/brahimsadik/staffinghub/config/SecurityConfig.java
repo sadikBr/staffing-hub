@@ -25,9 +25,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
- * Every API call needs a valid access token (a JWT) from the company's OpenID Connect provider, sent as
- * {@code Authorization: Bearer <token>}. The API is stateless: no sessions, no cookies, hence no CSRF protection
- * needed. API docs and the health check stay public.
+ * Every API call ({@code /api/**}) needs a valid access token (a JWT) from the company's OpenID Connect provider, sent
+ * as {@code Authorization: Bearer <token>}. The API is stateless: no sessions, no cookies, hence no CSRF protection
+ * needed. The frontend's files, its runtime configuration, the API docs and the health check stay public: the
+ * frontend itself sends users to the login provider.
  * <p>
  * Any authenticated employee can currently do everything (as with today's shared Excel file). To restrict writes to
  * some people later, map a role claim of the token to authorities and add rules in {@link #securityFilterChain}.
@@ -38,8 +39,8 @@ public class SecurityConfig {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
-    private static final String[] PUBLIC_PATHS = {
-            "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health/**" };
+    /** The only API endpoint reachable without a token: it tells the frontend how to log in. */
+    private static final String PUBLIC_API_CONFIG = WebConfig.API_PREFIX + "/config";
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, StaffingSecurityProperties properties)
@@ -55,8 +56,9 @@ public class SecurityConfig {
         }
 
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers(PUBLIC_PATHS).permitAll()
-                .anyRequest().authenticated())
+                .requestMatchers(PUBLIC_API_CONFIG).permitAll()
+                .requestMatchers(WebConfig.API_PREFIX + "/**").authenticated()
+                .anyRequest().permitAll())
                 .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
         return http.build();
     }

@@ -39,7 +39,7 @@ public class TechnologyController {
     public ResponseEntity<TechnologyResponse> create(@Validated @RequestBody TechnologyCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = technologyService.create(request);
-        final var location = uriBuilder.path("/technologies/{id}").buildAndExpand(response.id()).toUri();
+        final var location = uriBuilder.path("/api/technologies/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 

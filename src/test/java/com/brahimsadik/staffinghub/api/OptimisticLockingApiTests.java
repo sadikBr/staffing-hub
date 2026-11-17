@@ -16,7 +16,7 @@ import org.springframework.http.MediaType;
 class OptimisticLockingApiTests extends ApiTestSupport {
 
     @ParameterizedTest
-    @ValueSource(strings = { "/customers", "/roles", "/technologies" })
+    @ValueSource(strings = { "/api/customers", "/api/roles", "/api/technologies" })
     void refusesUpdatesBasedOnAStaleVersion(String path) throws Exception {
         final var id = createLabelled(path, "Original");
 
@@ -45,40 +45,40 @@ class OptimisticLockingApiTests extends ApiTestSupport {
 
     @Test
     void appliesToEmployeesMissionsSkillsAndAssignments() throws Exception {
-        final var customer = createLabelled("/customers", "ACME");
-        final var technology = createLabelled("/technologies", "Java");
+        final var customer = createLabelled("/api/customers", "ACME");
+        final var technology = createLabelled("/api/technologies", "Java");
         final var employee = createEmployee("Ada", null);
-        final var skill = create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(technology));
-        final var mission = create("/missions", """
+        final var skill = create("/api/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(technology));
+        final var mission = create("/api/missions", """
                 {"label": "M", "projectName": "P", "status": "ONGOING", "customerId": "%s"}""".formatted(customer));
-        final var body = mockMvc.perform(post("/missions/{id}/assignments", mission)
+        final var body = mockMvc.perform(post("/api/missions/{id}/assignments", mission)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"employeeId\": \"%s\"}".formatted(employee)))
                 .andReturn().getResponse().getContentAsString();
         final String assignment = com.jayway.jsonpath.JsonPath.read(body, "$.id");
 
-        expectStaleUpdateRefused("/employees/" + employee, """
+        expectStaleUpdateRefused("/api/employees/" + employee, """
                 {"firstName": "%s", "lastName": "Doe", "seniority": "SENIOR", "community": "OWL", "version": %d}""");
-        expectStaleUpdateRefused("/skills/" + skill, """
+        expectStaleUpdateRefused("/api/skills/" + skill, """
                 {"label": "%%s", "technologyId": "%s", "version": %%d}""".formatted(technology));
-        expectStaleUpdateRefused("/missions/" + mission, """
+        expectStaleUpdateRefused("/api/missions/" + mission, """
                 {"label": "%%s", "projectName": "P", "status": "ONGOING", "customerId": "%s", "version": %%d}"""
                 .formatted(customer));
-        expectStaleUpdateRefused("/missions/" + mission + "/assignments/" + assignment, """
+        expectStaleUpdateRefused("/api/missions/" + mission + "/assignments/" + assignment, """
                 {"employeeId": "%s", "comment": "%%s", "version": %%d}""".formatted(employee));
     }
 
     @Test
     void employeeVersionReflectsRoleChanges() throws Exception {
         final var employee = createEmployee("Ada", null);
-        final var role = createLabelled("/roles", "Tech Lead");
+        final var role = createLabelled("/api/roles", "Tech Lead");
 
         // The response carries the version after the change, so the client can keep editing without a reload.
-        final var body = mockMvc.perform(put("/employees/{id}/roles", employee)
+        final var body = mockMvc.perform(put("/api/employees/{id}/roles", employee)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"roleIds\": [\"%s\"]}".formatted(role)))
                 .andReturn().getResponse().getContentAsString();
         final Integer version = com.jayway.jsonpath.JsonPath.read(body, "$.version");
 
-        mockMvc.perform(get("/employees/{id}", employee)).andExpect(jsonPath("$.version").value(version));
+        mockMvc.perform(get("/api/employees/{id}", employee)).andExpect(jsonPath("$.version").value(version));
     }
 
     /**

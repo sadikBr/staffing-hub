@@ -1,5 +1,6 @@
 package com.brahimsadik.staffinghub.repositories;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,5 +14,7 @@ public interface MissionAssignmentRepository extends JpaRepository<MissionAssign
     boolean existsByEmployeeId(UUID employeeId);
 
     List<MissionAssignment> findByEmployeeId(UUID employeeId);
+
+    List<MissionAssignment> findByEndDateBetweenOrderByEndDateAsc(LocalDate from, LocalDate to);
 
 }

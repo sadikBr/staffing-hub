@@ -51,16 +51,16 @@ class QueryCountTests extends ApiTestSupport {
     private Map<String, Long> measureAll() throws Exception {
         final var counts = new LinkedHashMap<String, Long>();
         for (final var endpoint : List.of(
-                "/employees?size=100",
-                "/employees?size=100&skillId=" + skills.getFirst() + "&minSkillLevel=BEGINNER",
-                "/employees/availability?from=2026-01-01&to=2026-12-31&size=100",
-                "/employees/" + manager,
-                "/employees/" + someEmployee + "/assignments",
-                "/missions?size=100",
-                "/missions/" + mission,
-                "/technologies",
-                "/skills",
-                "/roles")) {
+                "/api/employees?size=100",
+                "/api/employees?size=100&skillId=" + skills.getFirst() + "&minSkillLevel=BEGINNER",
+                "/api/employees/availability?from=2026-01-01&to=2026-12-31&size=100",
+                "/api/employees/" + manager,
+                "/api/employees/" + someEmployee + "/assignments",
+                "/api/missions?size=100",
+                "/api/missions/" + mission,
+                "/api/technologies",
+                "/api/skills",
+                "/api/roles")) {
             counts.put(endpoint, countQueries(endpoint));
         }
         return counts;
@@ -74,22 +74,22 @@ class QueryCountTests extends ApiTestSupport {
     }
 
     private void createReferenceData() throws Exception {
-        customer = createLabelled("/customers", "ACME");
+        customer = createLabelled("/api/customers", "ACME");
         for (var i = 0; i < 3; i++) {
-            roles.add(createLabelled("/roles", "Role " + i));
-            final var technology = createLabelled("/technologies", "Technology " + i);
+            roles.add(createLabelled("/api/roles", "Role " + i));
+            final var technology = createLabelled("/api/technologies", "Technology " + i);
             technologies.add(technology);
             for (var j = 0; j < 2; j++) {
-                skills.add(create("/skills",
+                skills.add(create("/api/skills",
                         "{\"label\": \"Skill %d-%d\", \"technologyId\": \"%s\"}".formatted(i, j, technology)));
             }
         }
         manager = createEmployee("Manager", null);
-        mission = create("/missions", """
+        mission = create("/api/missions", """
                 {"label": "M", "projectName": "P", "status": "ONGOING", "customerId": "%s", "projectManagerId": "%s"}"""
                 .formatted(customer, manager));
         for (final var skill : skills.subList(0, 3)) {
-            mockMvc.perform(put("/missions/{id}/skills/{skillId}", mission, skill)
+            mockMvc.perform(put("/api/missions/{id}/skills/{skillId}", mission, skill)
                     .contentType(MediaType.APPLICATION_JSON).content("{\"requiredLevel\": \"INTERMEDIATE\"}"));
         }
     }
@@ -101,17 +101,17 @@ class QueryCountTests extends ApiTestSupport {
             if (someEmployee == null) {
                 someEmployee = employee;
             }
-            putJson("/employees/" + employee + "/roles", "{\"roleIds\": [%s]}".formatted(quotedList(roles)));
-            putJson("/employees/" + employee + "/technologies",
+            putJson("/api/employees/" + employee + "/roles", "{\"roleIds\": [%s]}".formatted(quotedList(roles)));
+            putJson("/api/employees/" + employee + "/technologies",
                     "{\"technologyIds\": [%s]}".formatted(quotedList(technologies)));
             for (final var skill : skills) {
-                putJson("/employees/" + employee + "/skills/" + skill, "{\"level\": \"ADVANCED\"}");
+                putJson("/api/employees/" + employee + "/skills/" + skill, "{\"level\": \"ADVANCED\"}");
             }
-            final var ownMission = create("/missions", """
+            final var ownMission = create("/api/missions", """
                     {"label": "M%s", "projectName": "P", "status": "ONGOING", "customerId": "%s"}"""
                     .formatted(employee, customer));
             for (final var target : List.of(mission, ownMission)) {
-                mockMvc.perform(post("/missions/{id}/assignments", target).contentType(MediaType.APPLICATION_JSON)
+                mockMvc.perform(post("/api/missions/{id}/assignments", target).contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"employeeId": "%s", "startDate": "2026-01-01", "endDate": "2026-06-30", "rate": 50}"""
                                 .formatted(employee)))

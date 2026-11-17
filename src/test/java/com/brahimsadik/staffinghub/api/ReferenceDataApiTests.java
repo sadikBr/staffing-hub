@@ -19,7 +19,7 @@ import org.springframework.http.MediaType;
 class ReferenceDataApiTests extends ApiTestSupport {
 
     @ParameterizedTest
-    @ValueSource(strings = { "/customers", "/roles", "/technologies" })
+    @ValueSource(strings = { "/api/customers", "/api/roles", "/api/technologies" })
     void supportsCrud(String path) throws Exception {
         final var id = createLabelled(path, "First");
 
@@ -33,7 +33,7 @@ class ReferenceDataApiTests extends ApiTestSupport {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/customers", "/roles", "/technologies" })
+    @ValueSource(strings = { "/api/customers", "/api/roles", "/api/technologies" })
     void rejectsDuplicateLabelsOnCreateAndUpdate(String path) throws Exception {
         createLabelled(path, "Taken");
         final var other = createLabelled(path, "Other");
@@ -45,7 +45,7 @@ class ReferenceDataApiTests extends ApiTestSupport {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/customers", "/roles", "/technologies" })
+    @ValueSource(strings = { "/api/customers", "/api/roles", "/api/technologies" })
     void rejectsBlankLabels(String path) throws Exception {
         mockMvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content("{\"label\": \"\"}"))
                 .andExpect(status().isBadRequest())
@@ -53,7 +53,7 @@ class ReferenceDataApiTests extends ApiTestSupport {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "/customers", "/roles", "/technologies", "/skills" })
+    @ValueSource(strings = { "/api/customers", "/api/roles", "/api/technologies", "/api/skills" })
     void returnsNotFoundForUnknownIds(String path) throws Exception {
         mockMvc.perform(get(path + "/{id}", UUID.randomUUID())).andExpect(status().isNotFound());
         mockMvc.perform(delete(path + "/{id}", UUID.randomUUID())).andExpect(status().isNotFound());
@@ -61,48 +61,48 @@ class ReferenceDataApiTests extends ApiTestSupport {
 
     @Test
     void skillLabelsAreUniquePerTechnology() throws Exception {
-        final var java = createLabelled("/technologies", "Java");
-        final var python = createLabelled("/technologies", "Python");
+        final var java = createLabelled("/api/technologies", "Java");
+        final var python = createLabelled("/api/technologies", "Python");
 
-        create("/skills", "{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(java));
-        create("/skills", "{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(python));
+        create("/api/skills", "{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(java));
+        create("/api/skills", "{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(python));
 
-        mockMvc.perform(post("/skills").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/skills").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(java)))
                 .andExpect(status().isConflict());
-        mockMvc.perform(get("/technologies/{id}", java))
+        mockMvc.perform(get("/api/technologies/{id}", java))
                 .andExpect(jsonPath("$.skills", hasSize(1)))
                 .andExpect(jsonPath("$.skills[0].technologyId").value(java));
     }
 
     @Test
     void filtersSkillsByTechnology() throws Exception {
-        final var java = createLabelled("/technologies", "Java");
-        final var python = createLabelled("/technologies", "Python");
-        create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
-        create("/skills", "{\"label\": \"Asyncio\", \"technologyId\": \"%s\"}".formatted(python));
+        final var java = createLabelled("/api/technologies", "Java");
+        final var python = createLabelled("/api/technologies", "Python");
+        create("/api/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
+        create("/api/skills", "{\"label\": \"Asyncio\", \"technologyId\": \"%s\"}".formatted(python));
 
-        mockMvc.perform(get("/skills")).andExpect(jsonPath("$", hasSize(2)));
-        mockMvc.perform(get("/skills").param("technologyId", java))
+        mockMvc.perform(get("/api/skills")).andExpect(jsonPath("$", hasSize(2)));
+        mockMvc.perform(get("/api/skills").param("technologyId", java))
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].label").value("Streams"));
     }
 
     @Test
     void skillsRequireAnExistingTechnology() throws Exception {
-        mockMvc.perform(post("/skills").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/skills").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(UUID.randomUUID())))
                 .andExpect(status().isUnprocessableContent());
     }
 
     @Test
     void deletingATechnologyDeletesItsSkills() throws Exception {
-        final var java = createLabelled("/technologies", "Java");
-        final var skill = create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
+        final var java = createLabelled("/api/technologies", "Java");
+        final var skill = create("/api/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
 
-        mockMvc.perform(delete("/technologies/{id}", java)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/technologies/{id}", java)).andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/skills/{id}", skill)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/skills/{id}", skill)).andExpect(status().isNotFound());
     }
 
 }

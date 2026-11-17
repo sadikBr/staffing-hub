@@ -40,7 +40,7 @@ public class SkillController {
     public ResponseEntity<SkillResponse> create(@Validated @RequestBody SkillCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = skillService.create(request);
-        final var location = uriBuilder.path("/skills/{id}").buildAndExpand(response.id()).toUri();
+        final var location = uriBuilder.path("/api/skills/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 

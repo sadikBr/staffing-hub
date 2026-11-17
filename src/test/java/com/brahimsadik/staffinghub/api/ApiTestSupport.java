@@ -48,7 +48,7 @@ abstract class ApiTestSupport {
     }
 
     protected String createEmployee(String firstName, String managerId) throws Exception {
-        return create("/employees", employeeJson(firstName, managerId));
+        return create("/api/employees", employeeJson(firstName, managerId));
     }
 
     protected static String employeeJson(String firstName, String managerId) {

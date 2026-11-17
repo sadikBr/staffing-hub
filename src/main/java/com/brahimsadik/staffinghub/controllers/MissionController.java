@@ -47,7 +47,7 @@ public class MissionController {
     public ResponseEntity<MissionResponse> create(@Validated @RequestBody MissionCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = missionService.create(request);
-        final var location = uriBuilder.path("/missions/{id}").buildAndExpand(response.id()).toUri();
+        final var location = uriBuilder.path("/api/missions/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 
@@ -100,7 +100,7 @@ public class MissionController {
     public ResponseEntity<MissionAssignmentResponse> createAssignment(@PathVariable UUID id,
             @Validated @RequestBody MissionAssignmentRequest request, UriComponentsBuilder uriBuilder) {
         final var response = missionService.createAssignment(id, request);
-        final var location = uriBuilder.path("/missions/{id}/assignments/{assignmentId}")
+        final var location = uriBuilder.path("/api/missions/{id}/assignments/{assignmentId}")
                 .buildAndExpand(id, response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
