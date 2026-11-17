@@ -2,13 +2,9 @@ package com.brahimsadik.staffinghub.dtos.skill;
 
 import java.util.UUID;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-@Data
-public class SkillCreationUpdateRequest {
-
-    private String label;
-
-    private UUID technologyId;
-
+public record SkillCreationUpdateRequest(@NotBlank @Size(max = 255) String label, @NotNull UUID technologyId) {
 }

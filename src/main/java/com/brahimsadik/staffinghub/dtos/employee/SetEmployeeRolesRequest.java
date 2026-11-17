@@ -3,11 +3,8 @@ package com.brahimsadik.staffinghub.dtos.employee;
 import java.util.Set;
 import java.util.UUID;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
 
-@Data
-public class SetEmployeeRolesRequest {
-
-    private Set<UUID> rolesIds;
-
+/** Replaces all of an employee's roles. An empty set removes them all. */
+public record SetEmployeeRolesRequest(@NotNull Set<@NotNull UUID> roleIds) {
 }

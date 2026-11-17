@@ -3,11 +3,11 @@ package com.brahimsadik.staffinghub.dtos.employee;
 import java.util.Set;
 import java.util.UUID;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotNull;
 
-@Data
-public class SetEmployeeTechnologiesRequest {
-
-    private Set<UUID> technologiesIds;
-
+/**
+ * Replaces all of an employee's technologies. The employee's skills in technologies that are removed are removed
+ * too.
+ */
+public record SetEmployeeTechnologiesRequest(@NotNull Set<@NotNull UUID> technologyIds) {
 }

@@ -1,10 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.technology;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-@Data
-public class TechnologyCreationUpdateRequest {
-
-    private String label;
-
+public record TechnologyCreationUpdateRequest(@NotBlank @Size(max = 255) String label) {
 }

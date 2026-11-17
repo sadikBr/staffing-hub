@@ -1,18 +1,9 @@
 package com.brahimsadik.staffinghub.dtos.technology;
 
-import com.brahimsadik.staffinghub.dtos.skill.SkillResponse;
-import lombok.Data;
-
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
-@Data
-public class TechnologyWithSkillsResponse {
+import com.brahimsadik.staffinghub.dtos.skill.SkillResponse;
 
-    private UUID id;
-
-    private String label;
-
-    private Set<SkillResponse> skills;
-
+public record TechnologyWithSkillsResponse(UUID id, String label, List<SkillResponse> skills) {
 }

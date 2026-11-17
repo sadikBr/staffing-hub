@@ -3,69 +3,67 @@ package com.brahimsadik.staffinghub.services;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.brahimsadik.staffinghub.dtos.customer.CustomerCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.customer.CustomerResponse;
+import com.brahimsadik.staffinghub.exceptions.ConflictException;
+import com.brahimsadik.staffinghub.exceptions.ResourceNotFoundException;
 import com.brahimsadik.staffinghub.mappers.CustomerMapper;
 import com.brahimsadik.staffinghub.models.Customer;
 import com.brahimsadik.staffinghub.repositories.CustomerRepository;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Transactional
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
     public CustomerResponse create(CustomerCreationUpdateRequest request) {
-        try {
-            final var customer = customerMapper.toCustomer(request);
-
-            final var persistedCustomer = customerRepository.save(customer);
-
-            return customerMapper.toCustomerResponse(persistedCustomer);
-        } catch (final DataIntegrityViolationException e) {
-            throw new RuntimeException(String.format("Customer with label {%s} already exists", request.getLabel()));
-        }
-    }
-
-    public List<CustomerResponse> findAllCustomers() {
-        final var allCustomers = (List<Customer>) customerRepository.findAll();
-        return allCustomers.stream().map(customerMapper::toCustomerResponse).toList();
-    }
-
-    public CustomerResponse findCustomerById(UUID id) {
-        final var customer = customerRepository.findById(id).orElse(null);
-        if (customer == null) {
-            throw new RuntimeException("No customer exists with the id: " + id);
+        if (customerRepository.existsByLabel(request.label())) {
+            throw duplicateLabel(request.label());
         }
 
+        final var customer = customerRepository.save(customerMapper.toCustomer(request));
         return customerMapper.toCustomerResponse(customer);
     }
 
+    @Transactional(readOnly = true)
+    public List<CustomerResponse> findAllCustomers() {
+        return customerRepository.findAll(Sort.by("label")).stream().map(customerMapper::toCustomerResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerResponse findCustomerById(UUID id) {
+        return customerMapper.toCustomerResponse(getCustomer(id));
+    }
+
     public CustomerResponse updateCustomerById(UUID id, CustomerCreationUpdateRequest request) {
-        final var customer = customerRepository.findById(id).orElse(null);
-        if (customer == null) {
-            throw new RuntimeException("No customer exists with the id: " + id);
+        final var customer = getCustomer(id);
+        if (customerRepository.existsByLabelAndIdNot(request.label(), id)) {
+            throw duplicateLabel(request.label());
         }
 
-        customer.setLabel(request.getLabel());
-        final var persistedCustomer = customerRepository.save(customer);
-
-        return customerMapper.toCustomerResponse(persistedCustomer);
+        customerMapper.updateCustomer(request, customer);
+        return customerMapper.toCustomerResponse(customerRepository.saveAndFlush(customer));
     }
 
     public void delete(UUID id) {
-        final var customer = customerRepository.findById(id).orElse(null);
-        if (customer == null) {
-            throw new RuntimeException("No customer exists with the id: " + id);
-        }
+        customerRepository.delete(getCustomer(id));
+    }
 
-        customerRepository.delete(customer);
+    private Customer getCustomer(UUID id) {
+        return customerRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("customer", id));
+    }
+
+    private static ConflictException duplicateLabel(String label) {
+        return new ConflictException("A customer with the label '%s' already exists".formatted(label));
     }
 
 }

@@ -1,10 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.customer;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-@Data
-public class CustomerCreationUpdateRequest {
-
-    private String label;
-
+public record CustomerCreationUpdateRequest(@NotBlank @Size(max = 255) String label) {
 }

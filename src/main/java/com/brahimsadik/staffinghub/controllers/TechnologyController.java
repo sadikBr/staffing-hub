@@ -1,76 +1,64 @@
 package com.brahimsadik.staffinghub.controllers;
 
-import com.brahimsadik.staffinghub.dtos.technology.TechnologyCreationUpdateRequest;
-import com.brahimsadik.staffinghub.dtos.technology.TechnologyWithSkillsResponse;
-import com.brahimsadik.staffinghub.services.TechnologyService;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.brahimsadik.staffinghub.dtos.technology.TechnologyCreationUpdateRequest;
+import com.brahimsadik.staffinghub.dtos.technology.TechnologyResponse;
+import com.brahimsadik.staffinghub.dtos.technology.TechnologyWithSkillsResponse;
+import com.brahimsadik.staffinghub.services.TechnologyService;
+
+import lombok.RequiredArgsConstructor;
+
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping("/technologies")
 public class TechnologyController {
 
     private final TechnologyService technologyService;
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody TechnologyCreationUpdateRequest request,
-                                    UriComponentsBuilder uriBuilder) {
-        try {
-            final var technologyResponse = technologyService.create(request);
-
-            final var redirectUrl = uriBuilder.path("/technologies/{id}").buildAndExpand(technologyResponse.getId())
-                    .toUri();
-
-            return ResponseEntity.created(redirectUrl).body(technologyResponse);
-        } catch (final RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<TechnologyResponse> create(@Validated @RequestBody TechnologyCreationUpdateRequest request,
+            UriComponentsBuilder uriBuilder) {
+        final var response = technologyService.create(request);
+        final var location = uriBuilder.path("/technologies/{id}").buildAndExpand(response.id()).toUri();
+        return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping
-    public ResponseEntity<List<TechnologyWithSkillsResponse>> findAllTechnologies() {
-        final var technologyResponses = technologyService.findAllTechnologies();
-        return ResponseEntity.ok(technologyResponses);
+    public List<TechnologyWithSkillsResponse> findAllTechnologies() {
+        return technologyService.findAllTechnologies();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findTechnologyById(@PathVariable UUID id) {
-        try {
-            final var technologyResponse = technologyService.findTechnologyById(id);
-            return ResponseEntity.ok(technologyResponse);
-        } catch (final RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-        }
+    public TechnologyWithSkillsResponse findTechnologyById(@PathVariable UUID id) {
+        return technologyService.findTechnologyById(id);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateRoleById(@PathVariable UUID id,
-                                            @RequestBody TechnologyCreationUpdateRequest request) {
-        try {
-            final var technologyResponse = technologyService.updateTechnologyById(id, request);
-            return ResponseEntity.ok(technologyResponse);
-        } catch (final RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-        }
+    public TechnologyResponse updateTechnologyById(@PathVariable UUID id,
+            @Validated @RequestBody TechnologyCreationUpdateRequest request) {
+        return technologyService.updateTechnologyById(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable UUID id) {
-        try {
-            technologyService.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (final RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-        }
-
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        technologyService.delete(id);
     }
 
 }

@@ -12,15 +12,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
-@Setter
 @Getter
+@Setter
 @Entity
 @Table(name = "roles")
 public class Role {
@@ -34,11 +32,11 @@ public class Role {
     private String label;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
 }

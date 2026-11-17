@@ -1,22 +1,31 @@
 package com.brahimsadik.staffinghub.models;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.Instant;
 import java.util.UUID;
 
-@AllArgsConstructor
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @NoArgsConstructor
-@Setter
 @Getter
+@Setter
 @Entity
-@Table(name = "skills")
+@Table(name = "skills", uniqueConstraints = @UniqueConstraint(name = "uq_skills_technology_label", columnNames = {
+        "technology_id", "label" }))
 public class Skill {
 
     @Id
@@ -24,19 +33,19 @@ public class Skill {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "label", unique = true, nullable = false)
+    @Column(name = "label", nullable = false)
     private String label;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "technology_id", nullable = false)
     private Technology technology;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
 }

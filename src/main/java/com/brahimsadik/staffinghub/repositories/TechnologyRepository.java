@@ -1,26 +1,15 @@
 package com.brahimsadik.staffinghub.repositories;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.brahimsadik.staffinghub.models.Technology;
 
-public interface TechnologyRepository extends CrudRepository<Technology, UUID> {
+public interface TechnologyRepository extends JpaRepository<Technology, UUID> {
 
-    @Override
-    @EntityGraph(attributePaths = "skills")
-    @Query("Select t From Technology t")
-    List<Technology> findAll();
+    boolean existsByLabel(String label);
 
-    @Override
-    @EntityGraph(attributePaths = "skills")
-    @Query("Select t From Technology t Where t.id = :id")
-    Optional<Technology> findById(@Param("id") UUID id);
+    boolean existsByLabelAndIdNot(String label, UUID id);
 
 }

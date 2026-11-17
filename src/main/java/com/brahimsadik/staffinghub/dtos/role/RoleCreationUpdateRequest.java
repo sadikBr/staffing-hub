@@ -1,10 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.role;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-@Data
-public class RoleCreationUpdateRequest {
-
-    private String label;
-
+public record RoleCreationUpdateRequest(@NotBlank @Size(max = 255) String label) {
 }

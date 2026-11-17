@@ -3,69 +3,70 @@ package com.brahimsadik.staffinghub.services;
 import java.util.List;
 import java.util.UUID;
 
-import com.brahimsadik.staffinghub.dtos.technology.TechnologyWithSkillsResponse;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.brahimsadik.staffinghub.dtos.technology.TechnologyCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.technology.TechnologyResponse;
+import com.brahimsadik.staffinghub.dtos.technology.TechnologyWithSkillsResponse;
+import com.brahimsadik.staffinghub.exceptions.ConflictException;
+import com.brahimsadik.staffinghub.exceptions.ResourceNotFoundException;
 import com.brahimsadik.staffinghub.mappers.TechnologyMapper;
+import com.brahimsadik.staffinghub.models.Technology;
 import com.brahimsadik.staffinghub.repositories.TechnologyRepository;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Transactional
 public class TechnologyService {
 
     private final TechnologyRepository technologyRepository;
     private final TechnologyMapper technologyMapper;
 
     public TechnologyResponse create(TechnologyCreationUpdateRequest request) {
-        try {
-            final var technology = technologyMapper.toTechnology(request);
-
-            final var persistedTechnology = technologyRepository.save(technology);
-
-            return technologyMapper.toTechnologyResponse(persistedTechnology);
-        } catch (final DataIntegrityViolationException e) {
-            throw new RuntimeException(String.format("Technology with label {%s} already exists", request.getLabel()));
+        if (technologyRepository.existsByLabel(request.label())) {
+            throw duplicateLabel(request.label());
         }
+
+        final var technology = technologyRepository.save(technologyMapper.toTechnology(request));
+        return technologyMapper.toTechnologyResponse(technology);
     }
 
+    @Transactional(readOnly = true)
     public List<TechnologyWithSkillsResponse> findAllTechnologies() {
-        final var allTechnologies = technologyRepository.findAll();
-        return allTechnologies.stream().map(technologyMapper::toTechnologyWithSkillsResponse).toList();
+        return technologyRepository.findAll(Sort.by("label")).stream()
+                .map(technologyMapper::toTechnologyWithSkillsResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public TechnologyWithSkillsResponse findTechnologyById(UUID id) {
-        final var technology = technologyRepository.findById(id).orElse(null);
-        if (technology == null) {
-            throw new RuntimeException("No technology exists with the id: " + id);
-        }
-
-        return technologyMapper.toTechnologyWithSkillsResponse(technology);
+        return technologyMapper.toTechnologyWithSkillsResponse(getTechnology(id));
     }
 
     public TechnologyResponse updateTechnologyById(UUID id, TechnologyCreationUpdateRequest request) {
-        final var technology = technologyRepository.findById(id).orElse(null);
-        if (technology == null) {
-            throw new RuntimeException("No technology exists with the id: " + id);
+        final var technology = getTechnology(id);
+        if (technologyRepository.existsByLabelAndIdNot(request.label(), id)) {
+            throw duplicateLabel(request.label());
         }
 
-        technology.setLabel(request.getLabel());
-        final var persistedTechnology = technologyRepository.save(technology);
-
-        return technologyMapper.toTechnologyResponse(persistedTechnology);
+        technologyMapper.updateTechnology(request, technology);
+        return technologyMapper.toTechnologyResponse(technologyRepository.saveAndFlush(technology));
     }
 
+    /** Also deletes the technology's skills, and removes both from every employee. */
     public void delete(UUID id) {
-        final var technology = technologyRepository.findById(id).orElse(null);
-        if (technology == null) {
-            throw new RuntimeException("No technology exists with the id: " + id);
-        }
+        technologyRepository.delete(getTechnology(id));
+    }
 
-        technologyRepository.delete(technology);
+    private Technology getTechnology(UUID id) {
+        return technologyRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("technology", id));
+    }
+
+    private static ConflictException duplicateLabel(String label) {
+        return new ConflictException("A technology with the label '%s' already exists".formatted(label));
     }
 
 }
