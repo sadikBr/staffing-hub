@@ -11,7 +11,7 @@ interface Person {
   community?: Community;
 }
 
-const FALLBACK_COLORS = ['brand', 'teal', 'grape', 'orange', 'cyan', 'pink', 'indigo', 'lime'];
+const FALLBACK_COLORS = ['indigo', 'teal', 'grape', 'orange', 'cyan', 'pink', 'indigo', 'lime'];
 
 /** A stable color per person: their community's color, or one derived from their id. */
 function colorFor(person: Person): string {
@@ -29,15 +29,15 @@ interface EmployeeAvatarProps {
 }
 
 export function EmployeeAvatar({ person, size = 'md', solid = false }: EmployeeAvatarProps) {
+  const color = `var(--mantine-color-${colorFor(person)}-6)`;
+  const style = solid
+    ? { '--avatar-bg': color, '--avatar-color': '#fff', border: '2px solid var(--sh-surface)' }
+    : {
+        '--avatar-bg': `color-mix(in srgb, ${color} 18%, var(--sh-surface))`,
+        '--avatar-color': `color-mix(in srgb, ${color} 85%, var(--sh-text))`,
+      };
   return (
-    <Avatar
-      size={size}
-      radius="xl"
-      color={colorFor(person)}
-      variant={solid ? 'filled' : 'light'}
-      alt={fullName(person)}
-      style={solid ? { border: '2px solid var(--app-surface)' } : undefined}
-    >
+    <Avatar size={size} radius="xl" alt={fullName(person)} style={style as React.CSSProperties}>
       {initials(person)}
     </Avatar>
   );
@@ -73,5 +73,34 @@ export function PersonCell({ person, secondary, link = true, size = 'md' }: Pers
     <Link to={`/employees/${person.id}`} onClick={(event) => event.stopPropagation()}>
       {content}
     </Link>
+  );
+}
+
+/** A large square monogram for a person's page header. */
+export function Monogram({ person, size = 84 }: { person: Person; size?: number }) {
+  const color = `var(--mantine-color-${colorFor(person)}-6)`;
+  return (
+    <Box
+      aria-hidden="true"
+      w={size}
+      h={size}
+      style={{
+        flexShrink: 0,
+        display: 'grid',
+        placeItems: 'center',
+        borderRadius: 22,
+        background: `linear-gradient(145deg, color-mix(in srgb, ${color} 85%, #fff), ${color})`,
+        boxShadow: `0 12px 28px -12px color-mix(in srgb, ${color} 70%, transparent)`,
+        color: '#fff',
+        fontFamily: 'var(--sh-font-serif)',
+        fontVariationSettings: "'opsz' 72",
+        fontSize: size * 0.42,
+        fontWeight: 400,
+        letterSpacing: '-0.04em',
+        lineHeight: 1,
+      }}
+    >
+      {initials(person)}
+    </Box>
   );
 }

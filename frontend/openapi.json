@@ -42,6 +42,10 @@
             "description": "Clients that employees can be staffed on."
         },
         {
+            "name": "Absences",
+            "description": "Time employees are away: holidays, sick leave, training. Absences reduce availability."
+        },
+        {
             "name": "Missions",
             "description": "Missions for customers, the skills they require, and the employees assigned to them."
         },
@@ -513,6 +517,89 @@
                 }
             }
         },
+        "/api/missions/{id}/needs/{needId}": {
+            "put": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Replace a need's details; returns the whole mission",
+                "operationId": "updateNeed",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "needId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MissionNeedRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Delete a need (the assignment that filled it, if any, is kept)",
+                "operationId": "deleteNeed",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "needId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/api/missions/{id}/assignments/{assignmentId}": {
             "get": {
                 "tags": [
@@ -606,7 +693,7 @@
                 "tags": [
                     "Missions"
                 ],
-                "summary": "Remove an assignment from a mission",
+                "summary": "Remove an assignment from a mission (the need it filled, if any, opens again)",
                 "operationId": "deleteAssignment",
                 "parameters": [
                     {
@@ -897,6 +984,89 @@
                 }
             }
         },
+        "/api/employees/{employeeId}/absences/{absenceId}": {
+            "put": {
+                "tags": [
+                    "Absences"
+                ],
+                "summary": "Replace an absence's details",
+                "operationId": "update",
+                "parameters": [
+                    {
+                        "name": "employeeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "absenceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AbsenceRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AbsenceResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Absences"
+                ],
+                "summary": "Delete an absence",
+                "operationId": "delete_5",
+                "parameters": [
+                    {
+                        "name": "employeeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "absenceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/api/customers/{id}": {
             "get": {
                 "tags": [
@@ -973,7 +1143,7 @@
                     "Customers"
                 ],
                 "summary": "Delete a customer",
-                "operationId": "delete_5",
+                "operationId": "delete_6",
                 "parameters": [
                     {
                         "name": "id",
@@ -1299,6 +1469,99 @@
                 }
             }
         },
+        "/api/missions/{id}/needs": {
+            "post": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Add an open position (need) to a mission; returns the whole mission",
+                "operationId": "createNeed",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MissionNeedRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}/needs/{needId}/fill": {
+            "post": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Fill a need: assigns the employee with the need's dates and rate; returns the whole mission",
+                "operationId": "fillNeed",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "needId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FillNeedRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/missions/{id}/assignments": {
             "post": {
                 "tags": [
@@ -1538,6 +1801,81 @@
                 }
             }
         },
+        "/api/employees/{employeeId}/absences": {
+            "get": {
+                "tags": [
+                    "Absences"
+                ],
+                "summary": "List an employee's absences, most recent first",
+                "operationId": "findAbsences",
+                "parameters": [
+                    {
+                        "name": "employeeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/AbsenceResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Absences"
+                ],
+                "summary": "Record an absence (refused if it overlaps another one of the same employee)",
+                "operationId": "create_5",
+                "parameters": [
+                    {
+                        "name": "employeeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AbsenceRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AbsenceResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/customers": {
             "get": {
                 "tags": [
@@ -1566,7 +1904,7 @@
                     "Customers"
                 ],
                 "summary": "Create a customer",
-                "operationId": "create_5",
+                "operationId": "create_6",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1584,6 +1922,134 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/CustomerResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}/assignments/{assignmentId}/period": {
+            "patch": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Move an assignment in time, without changing anything else (days worked are capped to the new period)",
+                "operationId": "moveAssignment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignmentPeriodRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MissionAssignmentResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/missions/{id}/needs/{needId}/candidates": {
+            "get": {
+                "tags": [
+                    "Missions"
+                ],
+                "summary": "Rank the employees who could fill a need, best first",
+                "description": "Score out of 100: availability over the need's period (45), the mission's required skills (35), seniority (10) and role (10). A criterion the need does not specify counts as met.",
+                "operationId": "findNeedCandidates",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "needId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "How many candidates to return (1 to 50)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/NeedCandidateResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Application"
+                ],
+                "summary": "The current user's role and what they may do",
+                "operationId": "me",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MeResponse"
                                 }
                             }
                         }
@@ -2220,6 +2686,77 @@
                     "version"
                 ]
             },
+            "MissionNeedFill": {
+                "type": "object",
+                "properties": {
+                    "assignmentId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "employee": {
+                        "$ref": "#/components/schemas/EmployeeSummary"
+                    }
+                },
+                "required": [
+                    "assignmentId",
+                    "employee"
+                ]
+            },
+            "MissionNeedResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/RoleResponse"
+                    },
+                    "seniority": {
+                        "type": "string",
+                        "enum": [
+                            "JUNIOR",
+                            "MID_LEVEL",
+                            "SENIOR"
+                        ]
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rate": {
+                        "type": "number"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "filledBy": {
+                        "$ref": "#/components/schemas/MissionNeedFill"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "updatedAt",
+                    "version"
+                ]
+            },
             "MissionResponse": {
                 "type": "object",
                 "properties": {
@@ -2280,6 +2817,12 @@
                             "$ref": "#/components/schemas/MissionAssignmentResponse"
                         }
                     },
+                    "needs": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MissionNeedResponse"
+                        }
+                    },
                     "version": {
                         "type": "integer",
                         "format": "int64"
@@ -2299,6 +2842,7 @@
                     "customer",
                     "id",
                     "label",
+                    "needs",
                     "projectName",
                     "requiredSkills",
                     "status",
@@ -2374,6 +2918,45 @@
                             "ADVANCED",
                             "EXPERT"
                         ]
+                    }
+                }
+            },
+            "MissionNeedRequest": {
+                "type": "object",
+                "properties": {
+                    "roleId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "seniority": {
+                        "type": "string",
+                        "enum": [
+                            "JUNIOR",
+                            "MID_LEVEL",
+                            "SENIOR"
+                        ]
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rate": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 100
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -2652,6 +3235,97 @@
                     "roleIds"
                 ]
             },
+            "AbsenceRequest": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "HOLIDAY",
+                            "SICK_LEAVE",
+                            "TRAINING",
+                            "OTHER"
+                        ]
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "comment": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "minLength": 0
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "endDate",
+                    "startDate",
+                    "type"
+                ]
+            },
+            "AbsenceResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "HOLIDAY",
+                            "SICK_LEAVE",
+                            "TRAINING",
+                            "OTHER"
+                        ]
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "workingDays": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "comment": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "endDate",
+                    "id",
+                    "startDate",
+                    "type",
+                    "updatedAt",
+                    "version",
+                    "workingDays"
+                ]
+            },
             "CustomerCreationUpdateRequest": {
                 "type": "object",
                 "properties": {
@@ -2667,6 +3341,38 @@
                 },
                 "required": [
                     "label"
+                ]
+            },
+            "FillNeedRequest": {
+                "type": "object",
+                "properties": {
+                    "employeeId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "employeeId"
+                ]
+            },
+            "AssignmentPeriodRequest": {
+                "type": "object",
+                "properties": {
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "required": [
+                    "startDate"
                 ]
             },
             "TechnologyWithSkillsResponse": {
@@ -2752,6 +3458,112 @@
                     "page"
                 ]
             },
+            "NeedCandidateResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "seniority": {
+                        "type": "string",
+                        "enum": [
+                            "JUNIOR",
+                            "MID_LEVEL",
+                            "SENIOR"
+                        ]
+                    },
+                    "community": {
+                        "type": "string",
+                        "enum": [
+                            "TIGER",
+                            "BEAR",
+                            "SHARK",
+                            "SQUIRREL",
+                            "DRAGON",
+                            "EAGLE",
+                            "IGUANA",
+                            "UNICORN",
+                            "OWL",
+                            "WOLF"
+                        ]
+                    },
+                    "score": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "availability": {
+                        "type": "number"
+                    },
+                    "peakOccupation": {
+                        "type": "number"
+                    },
+                    "absentDays": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "skillMatches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RequiredSkillMatch"
+                        }
+                    },
+                    "seniorityMatch": {
+                        "type": "boolean"
+                    },
+                    "roleMatch": {
+                        "type": "boolean"
+                    },
+                    "alreadyOnMission": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "absentDays",
+                    "alreadyOnMission",
+                    "availability",
+                    "community",
+                    "firstName",
+                    "id",
+                    "lastName",
+                    "peakOccupation",
+                    "roleMatch",
+                    "score",
+                    "seniority",
+                    "seniorityMatch",
+                    "skillMatches"
+                ]
+            },
+            "MeResponse": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "VIEWER",
+                            "STAFFER",
+                            "ADMIN"
+                        ]
+                    },
+                    "canEdit": {
+                        "type": "boolean"
+                    },
+                    "canAdmin": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "canAdmin",
+                    "canEdit",
+                    "role"
+                ]
+            },
             "PagedModelEmployeeResponse": {
                 "type": "object",
                 "properties": {
@@ -2830,6 +3642,9 @@
                     "projectName": {
                         "type": "string"
                     },
+                    "description": {
+                        "type": "string"
+                    },
                     "status": {
                         "type": "string",
                         "enum": [
@@ -2850,6 +3665,38 @@
                     "label",
                     "projectName",
                     "status"
+                ]
+            },
+            "AbsenceSummary": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "HOLIDAY",
+                            "SICK_LEAVE",
+                            "TRAINING",
+                            "OTHER"
+                        ]
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "endDate",
+                    "id",
+                    "startDate",
+                    "type"
                 ]
             },
             "EmployeeAvailabilityResponse": {
@@ -2901,14 +3748,26 @@
                     "overbooked": {
                         "type": "boolean"
                     },
+                    "absentDays": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
                     "assignments": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/OverlappingAssignment"
                         }
+                    },
+                    "absences": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AbsenceSummary"
+                        }
                     }
                 },
                 "required": [
+                    "absences",
+                    "absentDays",
                     "assignments",
                     "availability",
                     "community",
@@ -2940,12 +3799,17 @@
                     },
                     "rate": {
                         "type": "number"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "required": [
                     "id",
                     "mission",
-                    "startDate"
+                    "startDate",
+                    "version"
                 ]
             },
             "PagedModelEmployeeAvailabilityResponse": {
@@ -3017,6 +3881,16 @@
                         "items": {
                             "$ref": "#/components/schemas/EndingAssignment"
                         }
+                    },
+                    "openNeedCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "openNeeds": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OpenNeed"
+                        }
                     }
                 },
                 "required": [
@@ -3027,6 +3901,8 @@
                     "horizonDays",
                     "missionsByStatus",
                     "mostAvailable",
+                    "openNeedCount",
+                    "openNeeds",
                     "overbooked",
                     "overbookedEmployees",
                     "to"
@@ -3058,6 +3934,21 @@
                     "endDate",
                     "id",
                     "mission"
+                ]
+            },
+            "OpenNeed": {
+                "type": "object",
+                "properties": {
+                    "mission": {
+                        "$ref": "#/components/schemas/MissionSummary"
+                    },
+                    "need": {
+                        "$ref": "#/components/schemas/MissionNeedResponse"
+                    }
+                },
+                "required": [
+                    "mission",
+                    "need"
                 ]
             },
             "AppConfigResponse": {

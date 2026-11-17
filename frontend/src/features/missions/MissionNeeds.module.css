@@ -1,0 +1,132 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.need {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 10px 12px 14px;
+  border-radius: 12px;
+  background: var(--sh-surface-2);
+  box-shadow: inset 3px 0 0 var(--sh-primary);
+
+  &[data-filled] {
+    background: transparent;
+    box-shadow: inset 3px 0 0 var(--sh-free);
+  }
+}
+
+.needInfo {
+  flex: 1;
+  min-width: 0;
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  .need {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+}
+
+.filled {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  background: var(--sh-free-soft);
+  color: var(--sh-free);
+
+  p {
+    color: var(--sh-text);
+  }
+}
+
+.actions {
+  opacity: 0.4;
+  transition: opacity 120ms ease;
+
+  .need:hover &,
+  &:focus-within {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+/* ---------- Candidates ---------- */
+
+.candidate {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-sheet);
+
+  &[data-best] {
+    box-shadow:
+      0 0 0 1.5px color-mix(in srgb, var(--sh-primary) 55%, transparent),
+      var(--sh-shadow-sheet);
+  }
+}
+
+/* The score as a ring filled up to the score. */
+.score {
+  --size: 52px;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: conic-gradient(var(--sh-primary) calc(var(--score) * 1%), var(--sh-surface-2) 0);
+  display: grid;
+  place-items: center;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border-radius: 999px;
+    background: var(--sh-surface);
+  }
+
+  span {
+    position: relative;
+    font-family: var(--sh-font-serif);
+    font-variation-settings: 'opsz' 36;
+    font-size: 1.25rem;
+    font-weight: 450;
+    letter-spacing: -0.02em;
+  }
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  &:hover p {
+    color: var(--sh-primary-text);
+  }
+}
+
+.yes {
+  background: var(--sh-free-soft);
+  color: var(--sh-free);
+}
+
+.no {
+  background: var(--sh-over-soft);
+  color: var(--sh-over);
+}

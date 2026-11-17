@@ -34,6 +34,18 @@ export type MissionAssignmentRequest = Schemas['MissionAssignmentRequest'];
 export type RequiredSkillMatch = Schemas['RequiredSkillMatch'];
 export type AssignmentOccupation = Schemas['AssignmentOccupation'];
 
+export type Absence = Schemas['AbsenceResponse'];
+export type AbsenceRequest = Schemas['AbsenceRequest'];
+export type AbsenceSummary = Schemas['AbsenceSummary'];
+export type AbsenceType = Absence['type'];
+
+export type MissionNeed = Schemas['MissionNeedResponse'];
+export type MissionNeedRequest = Schemas['MissionNeedRequest'];
+export type NeedCandidate = Schemas['NeedCandidateResponse'];
+export type OpenNeed = Schemas['OpenNeed'];
+
+export type Me = Schemas['MeResponse'];
+
 export type Dashboard = Schemas['DashboardResponse'];
 export type EndingAssignment = Schemas['EndingAssignment'];
 export type PageMetadata = Schemas['PageMetadata'];

@@ -1,0 +1,54 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 22px;
+}
+
+.bar {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: 0 2px;
+  border-radius: 2px;
+
+  span {
+    display: block;
+    width: 6px;
+    border-radius: 1.5px;
+    background: var(--sh-primary);
+    opacity: 0.18;
+    transition:
+      opacity 100ms ease,
+      background-color 100ms ease;
+  }
+
+  &[data-on] span {
+    opacity: 1;
+  }
+
+  &[data-preview] span {
+    background: var(--sh-accent);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.name {
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--sh-text-3);
+  width: 86px;
+
+  &[data-preview] {
+    color: var(--sh-accent);
+  }
+}

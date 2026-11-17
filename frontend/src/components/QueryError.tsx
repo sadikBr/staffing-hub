@@ -1,5 +1,5 @@
-import { Alert, Button } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { Button, Group, Text } from '@mantine/core';
+import { IconAlertTriangle, IconRefresh } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/errors';
 
@@ -8,13 +8,30 @@ export function QueryError({ error, onRetry }: { error: unknown; onRetry?: () =>
   const { t } = useTranslation();
   const message = error instanceof ApiError && error.status < 500 ? error.message : t('errors.loadFailed');
   return (
-    <Alert color="red" variant="light" icon={<IconAlertCircle />} title={t('errors.title')} radius="lg">
-      {message}
-      {onRetry && (
-        <Button size="xs" variant="white" color="red" mt="sm" display="block" onClick={onRetry}>
-          {t('common.retry')}
-        </Button>
-      )}
-    </Alert>
+    <div
+      role="alert"
+      style={{
+        background: 'var(--sh-over-soft)',
+        padding: 'var(--mantine-spacing-md) var(--mantine-spacing-lg)',
+        borderRadius: 'var(--mantine-radius-lg)',
+      }}
+    >
+      <Group justify="space-between" wrap="wrap" gap="sm">
+        <Group gap="sm" wrap="nowrap" align="flex-start">
+          <IconAlertTriangle size={20} color="var(--sh-over)" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <Text fw={600}>{t('errors.title')}</Text>
+            <Text size="sm" c="var(--sh-text-2)">
+              {message}
+            </Text>
+          </div>
+        </Group>
+        {onRetry && (
+          <Button size="xs" variant="default" leftSection={<IconRefresh size={14} />} onClick={onRetry}>
+            {t('common.retry')}
+          </Button>
+        )}
+      </Group>
+    </div>
   );
 }

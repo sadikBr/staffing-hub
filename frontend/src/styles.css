@@ -1,19 +1,44 @@
-:root {
-  --app-bg: #f6f7fb;
-  --app-surface: #ffffff;
-  --app-border: var(--mantine-color-gray-2);
-}
+/* Global look. Tokens (--sh-*) are defined per color scheme in theme.ts (cssVariablesResolver). */
 
-[data-mantine-color-scheme='dark'] {
-  --app-bg: var(--mantine-color-dark-8);
-  --app-surface: var(--mantine-color-dark-7);
-  --app-border: var(--mantine-color-dark-4);
+html {
+  scrollbar-gutter: stable;
 }
 
 body {
-  background: var(--app-bg);
+  background: var(--sh-bg);
+  color: var(--sh-text);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Two soft glows at the top of the page: indigo on the left, violet on the right. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto;
+  height: 640px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(700px 360px at 8% -8%, rgba(91, 91, 246, 0.09), transparent 70%),
+    radial-gradient(640px 320px at 96% -12%, rgba(139, 92, 246, 0.08), transparent 70%);
+}
+
+[data-mantine-color-scheme='dark'] body::before {
+  background:
+    radial-gradient(760px 380px at 8% -10%, rgba(91, 91, 246, 0.16), transparent 70%),
+    radial-gradient(680px 340px at 96% -14%, rgba(139, 92, 246, 0.12), transparent 70%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--sh-primary) 28%, transparent);
 }
 
 a {
@@ -21,16 +46,232 @@ a {
   text-decoration: none;
 }
 
-/* Rows that open a detail page. */
-.clickable-row {
-  cursor: pointer;
+h1,
+h2,
+h3,
+h4 {
+  font-variation-settings: 'opsz' 96;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Helpers ---------- */
+
+.sh-serif {
+  font-family: var(--sh-font-serif);
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: -0.015em;
+}
+
+.sh-mono {
+  font-family: var(--sh-font-mono);
+}
+
+/* Small uppercase label, used for eyebrows, column headers and field names. */
+.sh-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sh-text-3);
+}
+
+/* Words or numbers painted with the brand gradient. */
+.sh-mark {
+  background: var(--sh-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+[data-mantine-color-scheme='dark'] .sh-mark {
+  background-image: linear-gradient(135deg, #a5a7ff 0%, #c4b5fd 100%);
+}
+
+/* The main surface of a page area: white (or deep navy), rounded, a soft shadow and no border. */
+.sh-sheet {
+  background: var(--sh-surface);
+  border-radius: var(--mantine-radius-lg);
+  box-shadow: var(--sh-shadow-sheet);
+  min-width: 0;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--mantine-shadow-md);
+.clickable-row {
+  cursor: pointer;
+}
+
+/* ---------- Tables: quiet rows, no header rule ---------- */
+
+.mantine-Table-table {
+  --table-border-color: var(--sh-rule);
+  --table-highlight-on-hover-color: var(--sh-hover);
+  background: transparent;
+}
+
+.mantine-Table-th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sh-text-3);
+  white-space: nowrap;
+  padding-top: 14px !important;
+  padding-bottom: 10px !important;
+}
+
+.mantine-Table-thead .mantine-Table-tr {
+  border-bottom: 0;
+}
+
+.mantine-Table-tbody .mantine-Table-tr {
+  transition: background-color 120ms ease;
+}
+
+.mantine-Table-tbody .mantine-Table-tr:last-child {
+  border-bottom: 0;
+}
+
+/* ---------- Inputs ---------- */
+
+.mantine-Input-input {
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.mantine-Input-input:focus,
+.mantine-Input-input:focus-within {
+  border-color: var(--sh-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-primary) 18%, transparent);
+}
+
+/* Secondary buttons: a surface with a hairline, lifted slightly. */
+.mantine-Button-root[data-variant='default'] {
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+/* ---------- Floating surfaces ---------- */
+
+.mantine-Menu-dropdown,
+.mantine-Popover-dropdown,
+.mantine-Combobox-dropdown {
+  background: var(--sh-raised);
+  border-color: var(--sh-rule);
+}
+
+[data-mantine-color-scheme='dark'] .mantine-Menu-dropdown,
+[data-mantine-color-scheme='dark'] .mantine-Popover-dropdown,
+[data-mantine-color-scheme='dark'] .mantine-Combobox-dropdown {
+  background: var(--mantine-color-dark-6);
+}
+
+.mantine-Menu-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mantine-Spotlight-content {
+  background: var(--sh-raised);
+  border: 0;
+}
+
+.mantine-Spotlight-search {
+  font-family: var(--sh-font-serif);
+  font-size: 1.35rem;
+  font-variation-settings: 'opsz' 48;
+  height: 64px;
+  border: 0;
+  border-bottom: 1px solid var(--sh-rule);
+  background: transparent;
+}
+
+.mantine-Spotlight-search:focus {
+  box-shadow: none;
+  border-color: var(--sh-rule);
+}
+
+.mantine-Spotlight-actionsGroup::before {
+  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.mantine-Spotlight-action[data-selected] {
+  background: var(--sh-primary-soft);
+}
+
+.mantine-Notification-root {
+  background: var(--sh-raised);
+  box-shadow: var(--mantine-shadow-lg);
+}
+
+.mantine-Notification-title {
+  font-weight: 600;
+}
+
+.mantine-Tooltip-tooltip {
+  font-size: 12px;
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sh-rise {
+  animation: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-rise {
+    animation: none;
+  }
+}
+
+/* ---------- Scrollbars ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sh-text) 18%, transparent) transparent;
+}
+
+/* ---------- Print: only the page content (e.g. a consultant profile) ---------- */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  [data-app-chrome],
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  body::before {
+    background: #fff !important;
+  }
+
+  [data-app-main] {
+    max-width: none !important;
+    padding: 0 !important;
+  }
 }

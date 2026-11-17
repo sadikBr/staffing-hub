@@ -67,6 +67,10 @@ export function showApiError(error: unknown, queryClient: QueryClient, form?: Fo
   if (error instanceof ApiError) {
     message = error.status >= 500 ? t('errors.server') : error.message;
     if (error.status === 400) title = t('errors.invalidTitle');
+    else if (error.status === 403) {
+      title = t('errors.forbiddenTitle');
+      message = t('errors.forbiddenMessage');
+    }
     else if (error.status === 404) title = t('errors.notFoundTitle');
     else if (error.status === 409 || error.status === 422) title = t('errors.refusedTitle');
   }

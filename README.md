@@ -29,6 +29,15 @@ Then open **http://localhost:5173** for the app, and **http://localhost:8000/swa
 
 To try the packaged app instead (UI served by Spring Boot on port 8000), run step 2 without `-DskipFrontend`.
 
+**Large demo data**: to see how the app behaves with real volumes (about 70 employees, 25 customers, 14 technologies,
+40 missions, absences and open positions), start the API with both profiles, on a fresh database:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev,large-demo -DskipFrontend
+```
+
+To go back to the small dataset, recreate the database (`docker compose down -v && docker compose up -d`).
+
 > Without the `dev` profile, the API requires a login provider (see below) and refuses to start if none is
 > configured. Never use the `dev` profile in production.
 
@@ -45,6 +54,10 @@ All settings come from environment variables (defaults suit local development):
 | `OIDC_CLIENT_ID` | Client id of the frontend at the login provider (single-page app, authorization code + PKCE) | — |
 | `OIDC_SCOPE` | Scopes the frontend requests; with Entra ID add the API scope (`api://<api-client-id>/access`) | `openid profile email` |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed to call the API (only if the UI is hosted elsewhere) | — |
+| `OIDC_ROLES_CLAIM` | Access token claim listing the user's roles (nested claims with dots, e.g. `realm_access.roles`) | `roles` |
+| `STAFFING_ADMIN_ROLES` | Values of that claim that make someone an **admin** (comma-separated) | `staffing-admin` |
+| `STAFFING_STAFFER_ROLES` | Values of that claim that make someone a **staffer** (comma-separated) | `staffing-staffer` |
+| `STAFFING_DEFAULT_ROLE` | Role of everyone else: `VIEWER`, `STAFFER` or `ADMIN` | `VIEWER` |
 | `SPRING_PROFILES_ACTIVE` | `dev` for local development only | — |
 
 Issuer examples: Microsoft Entra ID `https://login.microsoftonline.com/<tenant-id>/v2.0`, Google
@@ -52,8 +65,20 @@ Issuer examples: Microsoft Entra ID `https://login.microsoftonline.com/<tenant-i
 
 The frontend logs users in itself (redirect to the provider, then back) and sends `Authorization: Bearer <access
 token>` with every API call. Register it at the provider as a single-page application with redirect URI
-`https://<your-host>/`. In Swagger UI, use the **Authorize** button. Any authenticated user can currently do
-everything; role-based restrictions can be added in `SecurityConfig`.
+`https://<your-host>/`. In Swagger UI, use the **Authorize** button.
+
+**Permissions** come from a role claim of the access token:
+
+| Role | Can |
+|---|---|
+| Viewer | read everything, export profiles |
+| Staffer | also manage employees, absences, missions, assignments and open positions |
+| Admin | also manage customers, roles, technologies and skills, and delete employees |
+
+With Microsoft Entra ID, create app roles named `staffing-admin` and `staffing-staffer` on the API's app registration
+and assign them to users or groups (they arrive in the `roles` claim). With Keycloak, use realm roles and set
+`OIDC_ROLES_CLAIM=realm_access.roles`. The API enforces the rules; the UI also hides what a user cannot do. With the
+`dev` profile (no login), everyone is an admin.
 
 ## API overview
 
@@ -61,10 +86,12 @@ everything; role-based restrictions can be added in `SecurityConfig`.
 |---|---|
 | Reference data | `/api/customers`, `/api/roles`, `/api/technologies`, `/api/skills?technologyId=` (CRUD) |
 | Employees | `/api/employees` (search + CRUD), `/api/employees/{id}/roles`, `/technologies`, `/skills/{skillId}`, `/assignments` |
+| Absences | `/api/employees/{id}/absences` (CRUD) |
 | Availability | `/api/employees/availability?from=&to=&minAvailability=` (+ the employee search filters) |
-| Missions | `/api/missions` (search, filter by customer, status, business unit), `/api/missions/{id}/skills/{skillId}`, `/api/missions/{id}/assignments` |
+| Missions | `/api/missions` (search, filter by customer, status, business unit), `/api/missions/{id}/skills/{skillId}`, `/api/missions/{id}/assignments` (+ `PATCH .../{assignmentId}/period` to move one in time) |
+| Open positions | `/api/missions/{id}/needs` (CRUD), `.../needs/{needId}/candidates` (ranked), `.../needs/{needId}/fill` |
 | Dashboard | `/api/dashboard` (next 30 days) |
-| Frontend config | `/api/config` (public: tells the UI how to log in) |
+| Frontend config | `/api/config` (public: tells the UI how to log in), `/api/me` (the current user's role) |
 | Health | `/actuator/health` (+ `/liveness`, `/readiness`) |
 
 Conventions:
@@ -89,6 +116,13 @@ Conventions:
 - **Occupation / availability**: peak total rate on any day of the period. Assignments without a start date are
   ignored, without an end date are ongoing, without a rate count as 100%. Overbooking (> 100%) is reported, never
   blocked. Someone leaving during the period has 0% availability.
+- **Absences** (holiday, sick leave, training, other) cannot overlap for the same person. Over a bounded period,
+  availability is reduced by the share of working days (Monday to Friday) the person is away: free but away 5 of 20
+  working days means 75%. Open-ended periods report the days away without spreading them.
+- **Open positions** (needs) describe who a mission still needs: optional role, seniority, dates and rate. Candidates
+  are ranked by a score out of 100: how well they fit (the mission's required skills 55%, seniority 25%, role 20%)
+  multiplied by how much of the wanted time they are free. Filling a need assigns the person with the need's dates and
+  rate; removing that assignment opens the need again.
 
 > Mission status and business unit values are **placeholders** (see `V10__create_missions.sql` and the Java enums).
 > Change them with a new migration (`ALTER TYPE ... ADD VALUE / RENAME VALUE`) before going to production.
@@ -99,7 +133,7 @@ Conventions:
 frontend/src
 ├── api/          generated types (schema.ts), typed client, query hooks, error handling
 ├── auth/         login (OpenID Connect) and runtime configuration
-├── components/   shared UI: badges, avatars, availability meters, pickers, empty states...
+├── components/   shared UI: timeline, badges, avatars, availability meters, sections, empty states...
 ├── features/     one folder per area: dashboard, employees, availability, missions, reference data
 ├── i18n/         translations: locales/en.json holds every piece of text shown to users
 ├── layout/       app shell, navigation, global search (Ctrl/Cmd + K)
@@ -111,6 +145,14 @@ frontend/src
 - **Languages**: copy `src/i18n/locales/en.json` to e.g. `fr.json`, translate the values, and register it in
   `src/i18n/index.ts`. A language switcher appears in the user menu as soon as there is more than one language.
 - **Filters live in the URL**: every search can be bookmarked and shared.
+- **Timelines**: assignment bars can be dragged to move them, or stretched from either edge to change one date
+  (staffers and admins).
+- **Consultant profiles**: each employee page has a **Profile** button: a one-page summary (skills, missions) to print
+  or save as PDF from the browser, with options to hide customer names and include appreciations.
+- **Look and feel**: colors, fonts and spacing are defined once in `src/theme.ts` (Mantine theme plus `--sh-*` CSS
+  variables for light and dark mode); global styles are in `src/styles.css`. Each page area sits on a "sheet" (the
+  `sh-sheet` class, or `<Section sheet>`): a rounded surface separated by tone and a soft shadow rather than borders.
+  Schedules (availability, mission teams, an employee's missions) all use the same `Timeline` component.
 
 ## Tests
 

@@ -1,0 +1,128 @@
+.toolbar {
+  padding: 10px;
+}
+
+.list {
+  padding: 4px 20px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) auto;
+  gap: var(--mantine-spacing-lg);
+  align-items: start;
+  padding: 18px 0;
+
+  & + & {
+    box-shadow: 0 -1px 0 var(--sh-rule);
+  }
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name actions'
+      'skills skills';
+    row-gap: 12px;
+
+    .name {
+      grid-area: name;
+    }
+
+    .skills {
+      grid-area: skills;
+    }
+
+    .rowActions {
+      grid-area: actions;
+    }
+  }
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.skill {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--sh-surface-2);
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--sh-primary-soft);
+  }
+}
+
+.skillLabel {
+  padding: 0 4px 0 12px;
+  height: 100%;
+  font-size: 13.5px;
+  font-weight: 550;
+}
+
+.skillRemove {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
+  border-radius: 7px;
+  color: var(--sh-text-3);
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease;
+
+  .skill:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: var(--sh-over-soft);
+    color: var(--sh-over);
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.addInput {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--sh-primary) 40%, transparent);
+  background: transparent;
+  color: var(--sh-primary-text);
+  font-size: 13.5px;
+  padding-right: 12px;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+
+  &::placeholder {
+    color: color-mix(in srgb, var(--sh-primary-text) 70%, transparent);
+  }
+
+  &:hover {
+    background: var(--sh-primary-soft);
+  }
+
+  &:focus {
+    border-style: solid;
+    border-color: var(--sh-primary);
+    background: var(--sh-surface);
+    color: var(--sh-text);
+  }
+
+  &[data-error] {
+    border-color: var(--sh-over);
+  }
+}

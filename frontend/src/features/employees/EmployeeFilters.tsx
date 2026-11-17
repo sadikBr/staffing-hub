@@ -1,20 +1,23 @@
-import { Badge, Button, Collapse, Grid, Group, Select, Switch, TextInput } from '@mantine/core';
+import { Badge, Button, Collapse, Group, Select, TextInput, UnstyledButton } from '@mantine/core';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
-import { IconAdjustmentsHorizontal, IconSearch, IconX } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { IconAdjustmentsHorizontal, IconCheck, IconDoorExit, IconSearch, IconX } from '@tabler/icons-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRoles, useTechnologies } from '@/api/hooks/reference';
 import { COMMUNITIES, SENIORITIES, SKILL_LEVELS } from '@/lib/enums';
 import type { EmployeeFilterValues } from './employeeFilterQuery';
+import classes from './EmployeeFilters.module.css';
 
 interface EmployeeFiltersProps {
   values: EmployeeFilterValues;
   onChange: (changes: Partial<EmployeeFilterValues>) => void;
   onClear: () => void;
   activeCount: number;
+  /** Extra controls at the end of the first row (e.g. sorting). */
+  extra?: ReactNode;
 }
 
-export function EmployeeFilters({ values, onChange, onClear, activeCount }: EmployeeFiltersProps) {
+export function EmployeeFilters({ values, onChange, onClear, activeCount, extra }: EmployeeFiltersProps) {
   const { t } = useTranslation();
   const roles = useRoles();
   const technologies = useTechnologies();
@@ -37,10 +40,11 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount }: Empl
         })),
     [technologies.data],
   );
+  const includeFormer = values.includeFormer === 'true';
 
   return (
     <div>
-      <Group gap="sm" wrap="wrap">
+      <Group gap="xs" wrap="wrap">
         <TextInput
           placeholder={t('employees.searchPlaceholder')}
           leftSection={<IconSearch size={16} />}
@@ -58,7 +62,7 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount }: Empl
           value={values.seniority || null}
           onChange={(value) => onChange({ seniority: value ?? '' })}
           clearable
-          w={{ base: '48%', sm: 160 }}
+          w={{ base: 'calc(50% - 5px)', sm: 160 }}
           aria-label={t('employees.fields.seniority')}
         />
         <Select
@@ -67,14 +71,22 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount }: Empl
           value={values.community || null}
           onChange={(value) => onChange({ community: value ?? '' })}
           clearable
-          w={{ base: '48%', sm: 160 }}
+          w={{ base: 'calc(50% - 5px)', sm: 160 }}
           aria-label={t('employees.fields.community')}
         />
         <Button
-          variant={advanced ? 'light' : 'default'}
+          variant={advanced || advancedCount > 0 ? 'light' : 'subtle'}
+          color={advanced || advancedCount > 0 ? 'brand' : 'gray'}
           leftSection={<IconAdjustmentsHorizontal size={16} />}
-          rightSection={advancedCount > 0 ? <Badge size="xs" circle>{advancedCount}</Badge> : undefined}
+          rightSection={
+            advancedCount > 0 ? (
+              <Badge size="xs" circle variant="filled">
+                {advancedCount}
+              </Badge>
+            ) : undefined
+          }
           onClick={toggle}
+          aria-expanded={advanced}
         >
           {t('employees.filters.more')}
         </Button>
@@ -83,63 +95,58 @@ export function EmployeeFilters({ values, onChange, onClear, activeCount }: Empl
             {t('common.clearFilters')}
           </Button>
         )}
+        {extra && <div className={classes.extra}>{extra}</div>}
       </Group>
 
       <Collapse in={advanced}>
-        <Grid mt="sm" gutter="sm" align="flex-end">
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
-              label={t('employees.fields.role')}
-              placeholder={t('employees.filters.anyRole')}
-              data={(roles.data ?? []).map((role) => ({ value: role.id, label: role.label }))}
-              value={values.roleId || null}
-              onChange={(value) => onChange({ roleId: value ?? '' })}
-              clearable
-              searchable
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-            <Select
-              label={t('employees.fields.technology')}
-              placeholder={t('employees.filters.anyTechnology')}
-              data={(technologies.data ?? []).map((technology) => ({ value: technology.id, label: technology.label }))}
-              value={values.technologyId || null}
-              onChange={(value) => onChange({ technologyId: value ?? '' })}
-              clearable
-              searchable
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 7, md: 2 }}>
-            <Select
-              label={t('employees.fields.skill')}
-              placeholder={t('employees.filters.anySkill')}
-              data={skillOptions}
-              value={values.skillId || null}
-              onChange={(value) => onChange({ skillId: value ?? '', minSkillLevel: value ? values.minSkillLevel : '' })}
-              clearable
-              searchable
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 5, md: 2 }}>
-            <Select
-              label={t('employees.filters.minLevel')}
-              placeholder={t('common.anyLevel')}
-              data={SKILL_LEVELS.map((value) => ({ value, label: t(`enums.skillLevel.${value}`) }))}
-              value={values.minSkillLevel || null}
-              onChange={(value) => onChange({ minSkillLevel: value ?? '' })}
-              disabled={!values.skillId}
-              clearable
-            />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 2 }}>
-            <Switch
-              label={t('employees.filters.includeFormer')}
-              checked={values.includeFormer === 'true'}
-              onChange={(event) => onChange({ includeFormer: event.currentTarget.checked ? 'true' : '' })}
-              mb={8}
-            />
-          </Grid.Col>
-        </Grid>
+        <div className={classes.advanced}>
+          <Select
+            placeholder={t('employees.filters.anyRole')}
+            aria-label={t('employees.fields.role')}
+            data={(roles.data ?? []).map((role) => ({ value: role.id, label: role.label }))}
+            value={values.roleId || null}
+            onChange={(value) => onChange({ roleId: value ?? '' })}
+            clearable
+            searchable
+          />
+          <Select
+            placeholder={t('employees.filters.anyTechnology')}
+            aria-label={t('employees.fields.technology')}
+            data={(technologies.data ?? []).map((technology) => ({ value: technology.id, label: technology.label }))}
+            value={values.technologyId || null}
+            onChange={(value) => onChange({ technologyId: value ?? '' })}
+            clearable
+            searchable
+          />
+          <Select
+            placeholder={t('employees.filters.anySkill')}
+            aria-label={t('employees.fields.skill')}
+            data={skillOptions}
+            value={values.skillId || null}
+            onChange={(value) => onChange({ skillId: value ?? '', minSkillLevel: value ? values.minSkillLevel : '' })}
+            clearable
+            searchable
+          />
+          <Select
+            placeholder={values.skillId ? t('employees.filters.anyLevel') : t('employees.filters.pickSkillFirst')}
+            aria-label={t('employees.filters.minLevel')}
+            data={SKILL_LEVELS.map((value) => ({ value, label: t('employees.filters.atLeast', { level: t(`enums.skillLevel.${value}`) }) }))}
+            value={values.minSkillLevel || null}
+            onChange={(value) => onChange({ minSkillLevel: value ?? '' })}
+            disabled={!values.skillId}
+            clearable
+          />
+          <UnstyledButton
+            className={classes.toggle}
+            data-checked={includeFormer || undefined}
+            role="switch"
+            aria-checked={includeFormer}
+            onClick={() => onChange({ includeFormer: includeFormer ? '' : 'true' })}
+          >
+            {includeFormer ? <IconCheck size={15} stroke={2.4} /> : <IconDoorExit size={15} stroke={1.8} />}
+            {t('employees.filters.includeFormer')}
+          </UnstyledButton>
+        </div>
       </Collapse>
     </div>
   );

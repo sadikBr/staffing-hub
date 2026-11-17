@@ -1,0 +1,47 @@
+.matrix {
+  display: grid;
+  align-items: center;
+}
+
+.cell {
+  min-width: 0;
+  padding: 8px 6px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 -1px 0 var(--sh-rule);
+}
+
+.head {
+  box-shadow: none;
+  padding-top: 0;
+}
+
+.center {
+  align-items: center;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+
+  &[data-state='met'] {
+    background: var(--sh-free);
+    color: #fff;
+  }
+
+  &[data-state='below'] {
+    background: var(--sh-partial-soft);
+    color: var(--sh-partial);
+  }
+
+  &[data-state='missing'] {
+    width: 8px;
+    height: 8px;
+    background: color-mix(in srgb, var(--sh-over) 45%, transparent);
+  }
+}

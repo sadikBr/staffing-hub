@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAvailability } from '@/api/hooks/employees';
 import type { MissionSkill, SkillLevel } from '@/api/types';
-import { SeniorityBadge } from '@/components/badges';
+import { DaysOff, SeniorityBadge } from '@/components/badges';
 import { EmployeeAvatar } from '@/components/EmployeeAvatar';
 import { AvailabilityMeter } from '@/components/OccupationBar';
 import { fullName, today } from '@/lib/format';
@@ -42,10 +42,13 @@ export function CandidatePicker({ from, to, value, onChange, requiredSkills, err
     <Stack gap="xs">
       <Group justify="space-between" align="flex-end">
         <div>
-          <Text size="sm" fw={500}>
-            {t('missions.assignments.employee')} <Text span c="red">*</Text>
+          <Text fz={13} fw={600} c="var(--sh-text-2)">
+            {t('missions.assignments.employee')}{' '}
+            <Text span c="var(--sh-primary)">
+              *
+            </Text>
           </Text>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" c="var(--sh-text-3)">
             {from ? t('missions.assignments.candidatesHelp') : t('missions.assignments.candidatesHelpNoDate')}
           </Text>
         </div>
@@ -100,7 +103,10 @@ export function CandidatePicker({ from, to, value, onChange, requiredSkills, err
                       </Badge>
                     )}
                   </Group>
-                  <SeniorityBadge value={candidate.seniority} size="xs" />
+                  <Group gap={4} wrap="nowrap">
+                    <SeniorityBadge value={candidate.seniority} size="xs" />
+                    {candidate.absentDays > 0 && <DaysOff count={candidate.absentDays} />}
+                  </Group>
                 </div>
                 <AvailabilityMeter occupation={candidate.peakOccupation} availability={candidate.availability} compact />
               </Group>

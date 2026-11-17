@@ -1,0 +1,28 @@
+.track {
+  position: relative;
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--sh-free-soft);
+}
+
+.booked {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--sh-gradient);
+  transition: width 300ms ease;
+
+  &[data-over] {
+    background: var(--sh-over);
+  }
+}
+
+.value {
+  font-family: var(--sh-font-serif);
+  font-variation-settings: 'opsz' 24;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}

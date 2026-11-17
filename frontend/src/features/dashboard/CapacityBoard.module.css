@@ -1,0 +1,153 @@
+.bar {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+
+  span {
+    min-width: 6px;
+  }
+}
+
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(200px, 1fr);
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 2px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 12px 8px 8px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--c) 7%, transparent);
+  scroll-snap-align: start;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 6px 10px;
+}
+
+.count {
+  font-family: var(--sh-font-serif);
+  font-variation-settings: 'opsz' 48;
+  font-size: 1.9rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--c);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sh-text-2);
+}
+
+.nobody {
+  padding: 4px 6px 8px;
+}
+
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 6px;
+  border-radius: 10px;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+  }
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.load {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--sh-text-3);
+
+  .person:hover & {
+    color: var(--c);
+  }
+}
+
+.away {
+  color: var(--sh-text-3);
+  flex-shrink: 0;
+}
+
+/* Avatar inside a ring that fills up with the person's load. */
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+
+  svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+  }
+}
+
+.ringTrack {
+  fill: none;
+  stroke: color-mix(in srgb, var(--sh-text) 10%, transparent);
+  stroke-width: 2.5;
+}
+
+.ringFill {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c);
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--c) 12%, transparent);
+  }
+}

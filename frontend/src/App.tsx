@@ -7,8 +7,9 @@ import { useState } from 'react';
 import { RouterProvider } from 'react-router';
 import { ApiError } from './api/errors';
 import { AuthRoot } from './auth/AuthRoot';
+import { PermissionsProvider } from './auth/PermissionsProvider';
 import { createRouter } from './router';
-import { theme } from './theme';
+import { cssVariablesResolver, theme } from './theme';
 
 function createQueryClient() {
   return new QueryClient({
@@ -27,12 +28,14 @@ export function App() {
   const [queryClient] = useState(createQueryClient);
   return (
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme} defaultColorScheme="auto">
+      <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} defaultColorScheme="auto">
         <DatesProvider settings={{ firstDayOfWeek: 1 }}>
           <ModalsProvider>
-            <Notifications position="top-right" />
+            <Notifications position="bottom-right" />
             <AuthRoot>
-              <Routes />
+              <PermissionsProvider>
+                <Routes />
+              </PermissionsProvider>
             </AuthRoot>
           </ModalsProvider>
         </DatesProvider>

@@ -52,7 +52,7 @@ export const SKILL_LEVEL_COLORS: Record<SkillLevel, string> = {
   NOVICE: 'gray',
   BEGINNER: 'cyan',
   INTERMEDIATE: 'teal',
-  ADVANCED: 'brand',
+  ADVANCED: 'indigo',
   EXPERT: 'grape',
 };
 
@@ -60,18 +60,18 @@ export const MISSION_STATUS_COLORS: Record<MissionStatus, string> = {
   PROSPECT: 'gray',
   CONFIRMED: 'blue',
   ONGOING: 'teal',
-  COMPLETED: 'brand',
+  COMPLETED: 'indigo',
   CANCELLED: 'red',
 };
 
 export const SENIORITY_COLORS: Record<Seniority, string> = {
   JUNIOR: 'cyan',
   MID_LEVEL: 'blue',
-  SENIOR: 'brand',
+  SENIOR: 'indigo',
 };
 
 export const COMMUNITY_COLORS: Record<Community, string> = {
-  BEAR: 'orange',
+  BEAR: 'teal',
   DRAGON: 'red',
   EAGLE: 'indigo',
   IGUANA: 'lime',
@@ -85,4 +85,9 @@ export const COMMUNITY_COLORS: Record<Community, string> = {
 
 export function skillLevelRank(level: SkillLevel): number {
   return SKILL_LEVELS.indexOf(level) + 1;
+}
+
+/** The community's color, as a CSS color. */
+export function communityColor(value: Community): string {
+  return `var(--mantine-color-${COMMUNITY_COLORS[value]}-6)`;
 }

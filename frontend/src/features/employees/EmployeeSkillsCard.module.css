@@ -1,0 +1,54 @@
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 24px 32px;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.groupName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.groupDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--sh-gradient);
+}
+
+.skill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  margin: 0 -8px;
+  border-radius: 10px;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--sh-hover);
+  }
+}
+
+.remove {
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  .skill:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}

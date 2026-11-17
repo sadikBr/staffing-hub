@@ -1,0 +1,327 @@
+/* ---------- Axis ---------- */
+
+.axis {
+  position: relative;
+  height: 46px;
+  user-select: none;
+}
+
+.month {
+  position: absolute;
+  top: 0;
+  height: 22px;
+  padding-left: 6px;
+  border-left: 1px solid color-mix(in srgb, var(--sh-text) 14%, transparent);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sh-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 22px;
+}
+
+.tickLabel {
+  position: absolute;
+  top: 26px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sh-text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &[data-major] {
+    color: var(--sh-text-2);
+    font-weight: 600;
+  }
+
+  &[data-align='start'] {
+    transform: translateX(4px);
+  }
+}
+
+.todayFlag {
+  position: absolute;
+  bottom: -1px;
+  transform: translateX(-50%);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--sh-gradient);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px rgba(91, 91, 246, 0.6);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+/* ---------- Track ---------- */
+
+.track {
+  position: relative;
+}
+
+/* The row's lane: a soft rounded band. Empty lane = free. */
+.lane {
+  position: absolute;
+  inset: 2px 0;
+  border-radius: 10px;
+  background: var(--sh-tint);
+}
+
+/* Time off: a neutral hatched block, behind the bars. */
+.absence {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 6px 3px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--sh-text) 9%, transparent) 0 5px,
+    color-mix(in srgb, var(--sh-text) 3%, transparent) 5px 10px
+  );
+  z-index: 1;
+
+  span {
+    font-size: 9.5px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--sh-text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Days booked above 100%. */
+.overBand {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--sh-over) 22%, transparent) 0 5px,
+    color-mix(in srgb, var(--sh-over) 10%, transparent) 5px 10px
+  );
+  z-index: 1;
+}
+
+.gridLine {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--sh-rule);
+}
+
+.today {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--sh-primary) 55%, transparent);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.bar {
+  position: absolute;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c) var(--strength), var(--sh-surface));
+  color: color-mix(in srgb, var(--c) 40%, var(--sh-text));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  z-index: 2;
+  transition:
+    box-shadow 140ms ease,
+    filter 140ms ease;
+
+  &:hover {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent);
+    z-index: 4;
+  }
+
+  &[data-clip-start] {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    mask-image: linear-gradient(to right, transparent 0, #000 14px);
+  }
+
+  &[data-clip-end] {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    mask-image: linear-gradient(to left, transparent 0, #000 28px);
+  }
+
+  &[data-clip-start][data-clip-end] {
+    mask-image: linear-gradient(to right, transparent 0, #000 14px, #000 calc(100% - 28px), transparent 100%);
+  }
+
+  &[data-ghost] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sh-text) 14%, transparent);
+    color: var(--sh-text-3);
+    font-weight: 500;
+  }
+}
+
+/* Draggable bars: grab the middle to move, an edge to change one date. */
+.bar[data-editable] {
+  cursor: grab;
+  touch-action: pan-y;
+
+  &[data-dragging] {
+    cursor: grabbing;
+    box-shadow:
+      0 0 0 2px var(--c),
+      var(--mantine-shadow-md);
+    z-index: 5;
+  }
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 1;
+
+  &[data-side='start'] {
+    left: 0;
+  }
+
+  &[data-side='end'] {
+    right: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 3px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--c);
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+
+  .bar:hover &::after {
+    opacity: 0.8;
+  }
+}
+
+.dragLabel {
+  position: absolute;
+  z-index: 6;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--sh-text);
+  color: var(--sh-bg);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+[data-mantine-color-scheme='dark'] .bar:not([data-ghost]) {
+  background: color-mix(in srgb, var(--c) calc(var(--strength) + 6%), var(--sh-surface));
+  color: color-mix(in srgb, var(--c) 25%, #fff);
+}
+
+.barDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--c);
+  flex-shrink: 0;
+}
+
+.barLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.barRate {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.7;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Legend ---------- */
+
+.legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--sh-text-3);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+}
+
+.legendBar {
+  width: 18px;
+  height: 10px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--mantine-color-indigo-6) 28%, var(--sh-surface));
+}
+
+.legendAway {
+  width: 18px;
+  height: 10px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--sh-text) 18%, transparent) 0 3px,
+    color-mix(in srgb, var(--sh-text) 6%, transparent) 3px 6px
+  );
+}
+
+.legendOver {
+  width: 18px;
+  height: 10px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--sh-over) 35%, transparent) 0 3px,
+    color-mix(in srgb, var(--sh-over) 14%, transparent) 3px 6px
+  );
+}
+
+.legendToday {
+  width: 2px;
+  height: 12px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--sh-primary) 55%, transparent);
+}

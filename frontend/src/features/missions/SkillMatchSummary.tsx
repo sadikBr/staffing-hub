@@ -1,7 +1,8 @@
-import { Badge, Group, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core';
+import { Group, Stack, Text, ThemeIcon, Tooltip } from '@mantine/core';
 import { IconCheck, IconMinus, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import type { RequiredSkillMatch } from '@/api/types';
+import { Tag } from '@/components/badges';
 
 type MatchState = 'met' | 'below' | 'missing';
 
@@ -12,16 +13,19 @@ function matchState(match: RequiredSkillMatch): MatchState {
 
 const STATE_COLORS: Record<MatchState, string> = { met: 'teal', below: 'orange', missing: 'red' };
 
-/** "2/3 skills" badge, with the detail of each required skill in a tooltip. */
+/** "2/3 skills", green when all are met, orange when some are, red when none; the detail of each skill in a tooltip. */
 export function SkillMatchSummary({ matches }: { matches: RequiredSkillMatch[] }) {
   const { t } = useTranslation();
   const met = matches.filter((match) => match.meetsRequirement).length;
-  const color = met === matches.length ? 'teal' : met === 0 ? 'red' : 'orange';
+  const color = met === matches.length ? 'var(--sh-free)' : met === 0 ? 'var(--sh-over)' : 'var(--sh-partial)';
   return (
     <Tooltip label={<SkillMatchList matches={matches} />} multiline w={300} withArrow>
-      <Badge color={color} variant="light" size="sm" leftSection={met === matches.length ? <IconCheck size={12} /> : undefined}>
-        {t('missions.skillMatch.summary', { met, total: matches.length })}
-      </Badge>
+      <span>
+        <Tag size="xs" color={color}>
+          {met === matches.length ? <IconCheck size={12} stroke={2.6} /> : <span style={{ width: 6, height: 6, borderRadius: 9, background: 'currentColor' }} />}
+          <span className="tabular-nums">{t('missions.skillMatch.summary', { met, total: matches.length })}</span>
+        </Tag>
+      </span>
     </Tooltip>
   );
 }

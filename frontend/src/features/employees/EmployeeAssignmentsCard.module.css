@@ -1,0 +1,60 @@
+.timeline {
+  margin-bottom: 20px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr) 210px 64px 110px;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 10px 12px 0;
+  margin: 0 -10px 0 0;
+  border-radius: 12px;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--sh-hover);
+  }
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    grid-template-columns: 4px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'swatch main rate'
+      'swatch period match';
+    row-gap: 6px;
+
+    .swatch {
+      grid-area: swatch;
+    }
+
+    .main {
+      grid-area: main;
+    }
+
+    .period {
+      grid-area: period;
+    }
+
+    .rate {
+      grid-area: rate;
+    }
+
+    .match {
+      grid-area: match;
+    }
+  }
+}
+
+.main {
+  min-width: 0;
+}
+
+.swatch {
+  align-self: stretch;
+  border-radius: 4px;
+}
+
+.match {
+  display: flex;
+  justify-content: flex-end;
+}

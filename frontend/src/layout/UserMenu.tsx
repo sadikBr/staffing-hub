@@ -1,7 +1,9 @@
-import { ActionIcon, Avatar, Badge, Menu, Text, Tooltip, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, Avatar, Menu, Text, Tooltip, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
 import { IconLanguage, IconLogout, IconMoon, IconSun } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/auth/permissions';
 import { useSession } from '@/auth/session';
+import { Tag } from '@/components/badges';
 import { changeLanguage, SUPPORTED_LANGUAGES } from '@/i18n';
 
 export function ColorSchemeToggle() {
@@ -21,13 +23,17 @@ export function ColorSchemeToggle() {
 export function UserMenu() {
   const { t, i18n } = useTranslation();
   const session = useSession();
+  const permissions = usePermissions();
 
   if (!session.authEnabled) {
     return (
       <Tooltip label={t('layout.devModeTooltip')} multiline w={260}>
-        <Badge color="orange" variant="light">
-          {t('layout.devMode')}
-        </Badge>
+        <span>
+          <Tag size="sm" className="sh-mono">
+            <span style={{ width: 6, height: 6, borderRadius: 9, background: 'var(--sh-partial)' }} />
+            {t('layout.devMode')}
+          </Tag>
+        </span>
       </Tooltip>
     );
   }
@@ -43,7 +49,7 @@ export function UserMenu() {
     <Menu position="bottom-end" width={240} shadow="md">
       <Menu.Target>
         <ActionIcon size="lg" radius="xl" variant="transparent" aria-label={t('layout.account')}>
-          <Avatar radius="xl" size={34} color="brand">
+          <Avatar radius="xl" size={34} variant="gradient">
             {userInitials}
           </Avatar>
         </ActionIcon>
@@ -58,6 +64,9 @@ export function UserMenu() {
               {session.email}
             </Text>
           )}
+          <Text size="xs" fw={600} c="var(--sh-primary-text)" mt={4} tt="none">
+            {t(`layout.roles.${permissions.role}`)}
+          </Text>
         </Menu.Label>
         {SUPPORTED_LANGUAGES.length > 1 && (
           <>

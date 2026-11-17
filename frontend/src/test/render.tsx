@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { MemoryRouter, Route, Routes, useLocation, type Location } from 'react-router';
-import { theme } from '@/theme';
+import { cssVariablesResolver, theme } from '@/theme';
 
 /**
  * Renders a page with every provider the app has, at the given URL. Uses a MemoryRouter: React Router's data routers
@@ -16,7 +16,7 @@ export function renderPage(element: ReactElement, { path = '/', url = '/' }: { p
   const location: { current?: Location } = {};
   const result = render(
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme}>
+      <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver}>
         <ModalsProvider>
           <Notifications />
           <MemoryRouter initialEntries={[url]}>

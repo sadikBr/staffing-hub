@@ -1,6 +1,6 @@
-import { Alert, Badge, Button, Grid, Group, Menu, Modal, MultiSelect, Skeleton, Stack, Text } from '@mantine/core';
+import { Anchor, Button, Group, Menu, Modal, MultiSelect, Skeleton, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconCalendarStats, IconChevronDown, IconDoorExit, IconPencil, IconTrash, IconUsersGroup } from '@tabler/icons-react';
+import { IconCalendarStats, IconChevronDown, IconDoorExit, IconFileDescription, IconId, IconPencil, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -9,15 +9,18 @@ import { employeeApi, useEmployee } from '@/api/hooks/employees';
 import { useRoles } from '@/api/hooks/reference';
 import type { Employee } from '@/api/types';
 import { useApiMutation } from '@/api/useApiMutation';
-import { CommunityBadge, FormerEmployeeBadge, SeniorityBadge } from '@/components/badges';
+import { usePermissions } from '@/auth/permissions';
+import { CommunityBadge, FormerEmployeeBadge, SeniorityBadge, Tag } from '@/components/badges';
 import { confirmDelete } from '@/components/confirmDelete';
-import { EmployeeAvatar, PersonCell } from '@/components/EmployeeAvatar';
+import { Monogram, PersonCell } from '@/components/EmployeeAvatar';
 import { PageHeader } from '@/components/PageHeader';
 import { QueryError } from '@/components/QueryError';
-import { DetailItem, SectionCard } from '@/components/SectionCard';
+import { DetailItem, Section } from '@/components/Section';
 import { formatDate, formatDateTime, fullName } from '@/lib/format';
 import NotFoundPage from '@/pages/NotFoundPage';
+import { EmployeeAbsences } from './EmployeeAbsences';
 import { EmployeeAssignmentsCard } from './EmployeeAssignmentsCard';
+import classes from './EmployeeDetailPage.module.css';
 import { EmployeeFormModal } from './EmployeeFormModal';
 import { EmployeeSkillsCard } from './EmployeeSkillsCard';
 
@@ -26,6 +29,7 @@ export default function EmployeeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const employee = useEmployee(id);
+  const { canEdit, canAdmin } = usePermissions();
   const [editing, editModal] = useDisclosure();
 
   const remove = useApiMutation({
@@ -47,17 +51,28 @@ export default function EmployeeDetailPage() {
     <>
       <PageHeader
         breadcrumbs={[{ label: t('nav.employees'), to: '/employees' }]}
-        leading={<EmployeeAvatar person={data} size={64} />}
+        leading={<Monogram person={data} />}
         title={name}
         meta={
-          <Group gap={6}>
+          <Group gap={8}>
             <SeniorityBadge value={data.seniority} size="md" />
             <CommunityBadge value={data.community} size="md" />
             {data.departureDate && <FormerEmployeeBadge departureDate={data.departureDate} />}
+            {data.manager && (
+              <Text size="sm" c="var(--sh-text-2)">
+                {t('employees.reportsToPrefix')}{' '}
+                <Anchor component={Link} to={`/employees/${data.manager.id}`} fw={600} underline="always">
+                  {fullName(data.manager)}
+                </Anchor>
+              </Text>
+            )}
           </Group>
         }
         actions={
           <>
+            <Button variant="default" leftSection={<IconFileDescription size={16} />} component={Link} to={`/employees/${data.id}/profile`}>
+              {t('profile.open')}
+            </Button>
             <Button
               variant="default"
               leftSection={<IconCalendarStats size={16} />}
@@ -66,13 +81,14 @@ export default function EmployeeDetailPage() {
             >
               {t('employees.checkAvailability')}
             </Button>
+            {canEdit && (
             <Button.Group>
               <Button leftSection={<IconPencil size={16} />} onClick={editModal.open}>
                 {t('common.edit')}
               </Button>
               <Menu position="bottom-end">
                 <Menu.Target>
-                  <Button px={8} aria-label={t('common.actions')} style={{ borderLeft: '1px solid rgba(255,255,255,0.3)' }}>
+                  <Button px={10} aria-label={t('common.actions')} style={{ borderLeft: '1px solid rgba(255, 255, 255, 0.25)' }}>
                     <IconChevronDown size={16} />
                   </Button>
                 </Menu.Target>
@@ -80,7 +96,8 @@ export default function EmployeeDetailPage() {
                   <Menu.Item leftSection={<IconDoorExit size={16} />} onClick={editModal.open}>
                     {t('employees.recordDeparture')}
                   </Menu.Item>
-                  <Menu.Divider />
+                  {canAdmin && <Menu.Divider />}
+                  {canAdmin && (
                   <Menu.Item
                     color="red"
                     leftSection={<IconTrash size={16} />}
@@ -94,83 +111,75 @@ export default function EmployeeDetailPage() {
                   >
                     {t('common.delete')}
                   </Menu.Item>
+                  )}
                 </Menu.Dropdown>
               </Menu>
             </Button.Group>
+            )}
           </>
         }
       />
 
       {data.departureDate && new Date(data.departureDate) <= new Date() && (
-        <Alert color="gray" icon={<IconDoorExit size={18} />} mb="lg" radius="lg">
-          {t('employees.formerNotice', { date: formatDate(data.departureDate) })}
-        </Alert>
+        <div className={classes.notice}>
+          <IconDoorExit size={18} stroke={1.6} />
+          <Text size="sm">{t('employees.formerNotice', { date: formatDate(data.departureDate) })}</Text>
+        </div>
       )}
 
-      <Grid gutter="lg">
-        <Grid.Col span={{ base: 12, lg: 8 }}>
-          <Stack gap="lg">
-            <EmployeeSkillsCard employee={data} />
-            <EmployeeAssignmentsCard employeeId={data.id} />
-          </Stack>
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, lg: 4 }}>
-          <Stack gap="lg">
-            <SectionCard title={t('employees.details')}>
-              <Stack gap="md">
-                <DetailItem label={t('employees.fields.manager')}>
-                  {data.manager ? <PersonCell person={data.manager} size="sm" /> : <Text c="dimmed" size="sm">{t('employees.noManager')}</Text>}
-                </DetailItem>
-                <DetailItem label={t('employees.fields.departureDate')}>
-                  {data.departureDate ? formatDate(data.departureDate) : <Text c="dimmed" size="sm" span>{t('employees.noDeparture')}</Text>}
-                </DetailItem>
-                <DetailItem label={t('employees.fields.comment')}>
-                  {data.comment ? (
-                    <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-                      {data.comment}
-                    </Text>
-                  ) : (
-                    <Text c="dimmed" size="sm" span>
-                      {t('employees.noComment')}
-                    </Text>
-                  )}
-                </DetailItem>
-                <Text size="xs" c="dimmed">
-                  {t('common.createdOn', { date: formatDateTime(data.createdAt) })} · {t('common.updatedOn', { date: formatDateTime(data.updatedAt) })}
-                </Text>
+      <div className={classes.layout}>
+        <Stack gap={40} style={{ minWidth: 0 }}>
+          <EmployeeSkillsCard employee={data} />
+          <EmployeeAssignmentsCard employeeId={data.id} />
+          <EmployeeAbsences employeeId={data.id} />
+        </Stack>
+
+        <Section title={t('employees.details')} icon={<IconId size={17} stroke={1.8} />} sheet="padded">
+          <DetailItem label={t('employees.fields.manager')}>
+            {data.manager ? <PersonCell person={data.manager} size="sm" /> : <Text c="dimmed" size="sm">{t('employees.noManager')}</Text>}
+          </DetailItem>
+          <RolesDetail employee={data} />
+          <DetailItem label={t('employees.team.title')}>
+            {data.staff.length === 0 ? (
+              <Text size="sm" c="dimmed">
+                {t('employees.team.empty')}
+              </Text>
+            ) : (
+              <Stack gap="sm" mt={4}>
+                {data.staff.map((member) => (
+                  <PersonCell key={member.id} person={member} size="sm" />
+                ))}
               </Stack>
-            </SectionCard>
-
-            <RolesCard employee={data} />
-
-            <SectionCard
-              title={t('employees.team.title')}
-              description={t('employees.team.description', { count: data.staff.length })}
-              icon={<IconUsersGroup size={18} stroke={1.6} />}
-            >
-              {data.staff.length === 0 ? (
-                <Text size="sm" c="dimmed">
-                  {t('employees.team.empty')}
-                </Text>
-              ) : (
-                <Stack gap="sm">
-                  {data.staff.map((member) => (
-                    <PersonCell key={member.id} person={member} size="sm" />
-                  ))}
-                </Stack>
-              )}
-            </SectionCard>
-          </Stack>
-        </Grid.Col>
-      </Grid>
+            )}
+          </DetailItem>
+          <DetailItem label={t('employees.fields.departureDate')}>
+            {data.departureDate ? formatDate(data.departureDate) : <Text c="dimmed" size="sm" span>{t('employees.noDeparture')}</Text>}
+          </DetailItem>
+          <DetailItem label={t('employees.fields.comment')}>
+            {data.comment ? (
+              <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                {data.comment}
+              </Text>
+            ) : (
+              <Text c="dimmed" size="sm" span>
+                {t('employees.noComment')}
+              </Text>
+            )}
+          </DetailItem>
+          <Text size="xs" c="dimmed" mt="xl">
+            {t('common.createdOn', { date: formatDateTime(data.createdAt) })} · {t('common.updatedOn', { date: formatDateTime(data.updatedAt) })}
+          </Text>
+        </Section>
+      </div>
 
       <EmployeeFormModal opened={editing} onClose={editModal.close} employee={data} />
     </>
   );
 }
 
-function RolesCard({ employee }: { employee: Employee }) {
+function RolesDetail({ employee }: { employee: Employee }) {
   const { t } = useTranslation();
+  const { canEdit } = usePermissions();
   const [opened, { open, close }] = useDisclosure();
   const roles = useRoles();
   const [selected, setSelected] = useState<string[]>([]);
@@ -182,12 +191,14 @@ function RolesCard({ employee }: { employee: Employee }) {
   const save = useApiMutation({ mutationFn: employeeApi.setRoles, successMessage: t('employees.roles.updated'), onSuccess: close });
 
   return (
-    <SectionCard
-      title={t('employees.columns.roles')}
-      actions={
-        <Button size="xs" variant="default" leftSection={<IconPencil size={14} />} onClick={open}>
-          {t('common.edit')}
-        </Button>
+    <DetailItem
+      label={t('employees.columns.roles')}
+      action={
+        canEdit && (
+          <Button size="compact-xs" variant="subtle" color="brand" leftSection={<IconPencil size={12} />} onClick={open}>
+            {t('common.edit')}
+          </Button>
+        )
       }
     >
       {employee.roles.length === 0 ? (
@@ -195,11 +206,11 @@ function RolesCard({ employee }: { employee: Employee }) {
           {t('employees.roles.empty')}
         </Text>
       ) : (
-        <Group gap={6}>
+        <Group gap={6} mt={2}>
           {employee.roles.map((role) => (
-            <Badge key={role.id} variant="light" color="gray" size="lg" radius="md" style={{ fontWeight: 500 }}>
+            <Tag key={role.id} size="md">
               {role.label}
-            </Badge>
+            </Tag>
           ))}
         </Group>
       )}
@@ -226,28 +237,24 @@ function RolesCard({ employee }: { employee: Employee }) {
           </Group>
         </Stack>
       </Modal>
-    </SectionCard>
+    </DetailItem>
   );
 }
 
 function DetailSkeleton() {
   return (
-    <Stack gap="lg">
-      <Group gap="md">
-        <Skeleton height={64} circle />
-        <Stack gap={8}>
-          <Skeleton height={22} width={240} />
-          <Skeleton height={14} width={160} />
+    <Stack gap="xl">
+      <Group gap="lg">
+        <Skeleton height={84} width={84} radius={22} />
+        <Stack gap={10}>
+          <Skeleton height={36} width={320} />
+          <Skeleton height={14} width={200} />
         </Stack>
       </Group>
-      <Grid gutter="lg">
-        <Grid.Col span={{ base: 12, lg: 8 }}>
-          <Skeleton height={320} radius="lg" />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, lg: 4 }}>
-          <Skeleton height={320} radius="lg" />
-        </Grid.Col>
-      </Grid>
+      <div className={classes.layout}>
+        <Skeleton height={360} radius="md" />
+        <Skeleton height={360} radius="md" />
+      </div>
     </Stack>
   );
 }

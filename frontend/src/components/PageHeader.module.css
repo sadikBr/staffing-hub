@@ -1,0 +1,54 @@
+.root {
+  margin-bottom: 36px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.crumb {
+  transition: color 120ms ease;
+
+  &:hover {
+    color: var(--sh-primary-text);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-lg);
+  flex-wrap: wrap;
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  flex: 1 1 420px;
+}
+
+.title {
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  color: var(--sh-text-2);
+  max-width: 64ch;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--mantine-spacing-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}

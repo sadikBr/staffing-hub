@@ -1,23 +1,26 @@
-import { ActionIcon, Alert, Badge, Box, Button, Group, Modal, MultiSelect, SegmentedControl, Select, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Alert, Button, Group, Modal, MultiSelect, SegmentedControl, Stack, Text, Tooltip } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconAlertTriangle, IconCode, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCode, IconPencil, IconPlus, IconX } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { employeeApi } from '@/api/hooks/employees';
 import { useTechnologies } from '@/api/hooks/reference';
 import type { Employee, SkillLevel } from '@/api/types';
 import { useApiMutation } from '@/api/useApiMutation';
-import { LevelDots } from '@/components/badges';
+import { usePermissions } from '@/auth/permissions';
 import { EmptyState } from '@/components/EmptyState';
-import { SectionCard } from '@/components/SectionCard';
+import { LevelPicker } from '@/components/LevelPicker';
+import { Section } from '@/components/Section';
 import { SkillSelect } from '@/components/SkillSelect';
-import { SKILL_LEVEL_COLORS, SKILL_LEVELS } from '@/lib/enums';
+import { SKILL_LEVELS, skillLevelRank } from '@/lib/enums';
+import classes from './EmployeeSkillsCard.module.css';
 
 /** The employee's technologies, and their level in each skill of those technologies. */
 export function EmployeeSkillsCard({ employee }: { employee: Employee }) {
   const { t } = useTranslation();
   const [technologiesOpened, technologiesModal] = useDisclosure();
   const [addOpened, addModal] = useDisclosure();
+  const { canEdit } = usePermissions();
 
   const setLevel = useApiMutation({ mutationFn: employeeApi.setSkillLevel, successMessage: t('employees.skills.levelUpdated') });
   const removeSkill = useApiMutation({ mutationFn: employeeApi.removeSkill, successMessage: t('employees.skills.removed') });
@@ -26,14 +29,17 @@ export function EmployeeSkillsCard({ employee }: { employee: Employee }) {
     technology,
     skills: employee.skills
       .filter((skill) => skill.skill.technologyId === technology.id)
-      .sort((a, b) => a.skill.label.localeCompare(b.skill.label)),
+      .sort((a, b) => skillLevelRank(b.level) - skillLevelRank(a.level) || a.skill.label.localeCompare(b.skill.label)),
   }));
 
   return (
-    <SectionCard
+    <Section
       title={t('employees.skills.title')}
       description={t('employees.skills.description')}
+      icon={<IconCode size={17} stroke={1.8} />}
+      sheet="padded"
       actions={
+        canEdit && (
         <>
           <Button size="xs" variant="default" leftSection={<IconPencil size={14} />} onClick={technologiesModal.open}>
             {t('employees.skills.editTechnologies')}
@@ -42,82 +48,74 @@ export function EmployeeSkillsCard({ employee }: { employee: Employee }) {
             {t('employees.skills.add')}
           </Button>
         </>
+        )
       }
     >
       {groups.length === 0 ? (
         <EmptyState
           compact
-          icon={<IconCode size={22} />}
+          icon={<IconCode size={22} stroke={1.5} />}
           title={t('employees.skills.emptyTitle')}
           description={t('employees.skills.emptyDescription')}
           action={
-            <Button size="xs" variant="light" onClick={technologiesModal.open}>
-              {t('employees.skills.editTechnologies')}
-            </Button>
+            canEdit && (
+              <Button size="xs" variant="light" onClick={technologiesModal.open}>
+                {t('employees.skills.editTechnologies')}
+              </Button>
+            )
           }
         />
       ) : (
-        <Stack gap="lg">
+        <div className={classes.groups}>
           {groups.map(({ technology, skills }) => (
-            <div key={technology.id}>
-              <Group gap="xs" mb={8}>
-                <Badge variant="light" size="lg" radius="md">
-                  {technology.label}
-                </Badge>
+            <div key={technology.id} className={classes.group}>
+              <div className={classes.groupHead}>
+                <div className={classes.groupName}>
+                  <span className={classes.groupDot} />
+                  <Text fw={650}>{technology.label}</Text>
+                </div>
                 <Text size="xs" c="dimmed">
                   {t('technologies.skillCount', { count: skills.length })}
                 </Text>
-              </Group>
+              </div>
               {skills.length === 0 ? (
-                <Text size="sm" c="dimmed" pl={4}>
+                <Text size="sm" c="dimmed" py="xs">
                   {t('employees.skills.noSkillInTechnology')}
                 </Text>
               ) : (
-                <Stack gap={6}>
-                  {skills.map((skill) => (
-                    <Group key={skill.skill.id} justify="space-between" wrap="nowrap" gap="sm">
-                      <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-                        <Box c={SKILL_LEVEL_COLORS[skill.level]} display="flex">
-                          <LevelDots value={skill.level} />
-                        </Box>
-                        <Text size="sm" fw={500} truncate>
-                          {skill.skill.label}
-                        </Text>
-                      </Group>
-                      <Group gap={4} wrap="nowrap">
-                        <Select
-                          size="xs"
-                          w={140}
-                          data={SKILL_LEVELS.map((value) => ({ value, label: t(`enums.skillLevel.${value}`) }))}
-                          value={skill.level}
-                          allowDeselect={false}
-                          aria-label={t('employees.skills.level')}
-                          onChange={(value) =>
-                            value && value !== skill.level && setLevel.mutate({ id: employee.id, skillId: skill.skill.id, level: value as SkillLevel })
-                          }
-                        />
-                        <Tooltip label={t('common.remove')}>
-                          <ActionIcon
-                            color="red"
-                            aria-label={t('common.remove')}
-                            onClick={() => removeSkill.mutate({ id: employee.id, skillId: skill.skill.id })}
-                          >
-                            <IconTrash size={16} />
-                          </ActionIcon>
-                        </Tooltip>
-                      </Group>
-                    </Group>
-                  ))}
-                </Stack>
+                skills.map((skill) => (
+                  <div key={skill.skill.id} className={classes.skill}>
+                    <Text size="sm" fw={550} truncate style={{ flex: 1, minWidth: 0 }}>
+                      {skill.skill.label}
+                    </Text>
+                    <LevelPicker
+                      disabled={!canEdit}
+                      value={skill.level}
+                      onChange={(level) => setLevel.mutate({ id: employee.id, skillId: skill.skill.id, level })}
+                    />
+                    {canEdit && (
+                    <Tooltip label={t('common.remove')}>
+                      <ActionIcon
+                        size="sm"
+                        className={classes.remove}
+                        aria-label={t('common.remove')}
+                        onClick={() => removeSkill.mutate({ id: employee.id, skillId: skill.skill.id })}
+                      >
+                        <IconX size={14} />
+                      </ActionIcon>
+                    </Tooltip>
+                    )}
+                  </div>
+                ))
               )}
             </div>
           ))}
-        </Stack>
+        </div>
       )}
 
       <TechnologiesModal employee={employee} opened={technologiesOpened} onClose={technologiesModal.close} />
       <AddSkillModal employee={employee} opened={addOpened} onClose={addModal.close} />
-    </SectionCard>
+    </Section>
   );
 }
 

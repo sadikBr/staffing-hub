@@ -1,0 +1,139 @@
+.panel {
+  padding: 14px 16px 12px;
+  margin-bottom: 20px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md) var(--mantine-spacing-xl);
+}
+
+.period {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.periodInput {
+  font-family: var(--sh-font-serif);
+  font-variation-settings: 'opsz' 48;
+  font-size: clamp(1.25rem, 1rem + 0.9vw, 1.65rem);
+  letter-spacing: -0.02em;
+  height: auto;
+  min-height: 0;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--sh-hover);
+  }
+}
+
+.filters {
+  margin-top: 14px;
+}
+
+.board {
+  --person-col: minmax(190px, 250px);
+  --free-col: 96px;
+  padding: 0 16px 10px;
+}
+
+.head,
+.row {
+  display: grid;
+  grid-template-columns: var(--person-col) minmax(0, 1fr) var(--free-col);
+  column-gap: var(--mantine-spacing-lg);
+  align-items: center;
+}
+
+.head {
+  position: sticky;
+  top: 68px;
+  z-index: 5;
+  align-items: end;
+  padding-top: 12px;
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-radius: var(--mantine-radius-lg) var(--mantine-radius-lg) 0 0;
+  background: color-mix(in srgb, var(--sh-surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.headLabel {
+  padding-bottom: 10px;
+}
+
+.row {
+  padding: 5px 8px;
+  margin: 0 -8px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--sh-hover);
+  }
+}
+
+.free {
+  text-align: right;
+}
+
+.freeValue {
+  font-family: var(--sh-font-serif);
+  font-variation-settings: 'opsz' 48;
+  font-size: 1.4rem;
+  font-weight: 450;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  .head {
+    grid-template-columns: 1fr;
+  }
+
+  .headLabel {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'person free'
+      'track track';
+    row-gap: 4px;
+    padding: 12px 8px;
+  }
+
+  .person {
+    grid-area: person;
+  }
+
+  .track {
+    grid-area: track;
+  }
+
+  .free {
+    grid-area: free;
+  }
+}

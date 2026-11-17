@@ -1,0 +1,156 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--sh-surface-2);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--sh-text-2);
+  vertical-align: middle;
+
+  &[data-size='xs'] {
+    height: 19px;
+    padding: 0 7px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  &[data-size='md'],
+  &[data-size='lg'] {
+    height: 26px;
+    padding: 0 11px;
+    font-size: 13px;
+  }
+}
+
+.plain {
+  background: transparent;
+  padding: 0;
+  height: auto;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status {
+  &[data-status='PROSPECT'] {
+    color: var(--sh-text-3);
+
+    .dot {
+      background: transparent;
+      box-shadow: inset 0 0 0 1.5px currentColor;
+    }
+  }
+
+  &[data-status='CONFIRMED'] {
+    background: var(--sh-primary-soft);
+    color: var(--sh-primary-text);
+  }
+
+  &[data-status='ONGOING'] {
+    background: var(--sh-gradient);
+    color: #fff;
+
+    .dot {
+      background: #fff;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+  }
+
+  &[data-status='COMPLETED'] {
+    background: var(--sh-free-soft);
+    color: var(--sh-free);
+  }
+
+  &[data-status='CANCELLED'] {
+    background: var(--sh-over-soft);
+    color: var(--sh-over);
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status[data-status='ONGOING'] .dot {
+    animation: none;
+  }
+}
+
+.unit {
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sh-text-3);
+}
+
+.warn {
+  background: var(--sh-over-soft);
+  color: var(--sh-over);
+}
+
+.leaving {
+  background: var(--sh-partial-soft);
+  color: color-mix(in srgb, var(--sh-partial) 80%, var(--sh-text));
+}
+
+.away {
+  color: var(--sh-text-2);
+}
+
+.former {
+  color: var(--sh-text-3);
+}
+
+/* Seniority: one, two or three pips. */
+.pips {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.pip {
+  width: 4px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--sh-primary);
+  opacity: 0.22;
+
+  &[data-on] {
+    opacity: 1;
+  }
+}
+
+/* Skill level: five ascending bars, like a signal meter. */
+.level {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.levelBar {
+  width: 4px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.18;
+
+  &[data-on] {
+    opacity: 1;
+  }
+}

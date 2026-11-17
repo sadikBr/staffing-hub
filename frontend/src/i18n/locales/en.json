@@ -31,14 +31,16 @@
     "today": "today",
     "anyLevel": "Any level",
     "optional": "Optional",
-    "sortBy": "Sort by"
+    "sortBy": "Sort by",
+    "sort": "Sort"
   },
   "startup": {
     "unreachableTitle": "Staffing Hub is unreachable",
     "unreachableMessage": "The server did not answer. Check your connection, or try again in a moment.",
     "loginFailedTitle": "Sign-in failed",
     "signingIn": "Signing you in…",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "loadingPermissions": "Loading your workspace…"
   },
   "errors": {
     "title": "Something went wrong",
@@ -53,7 +55,9 @@
     "reloadPage": "Reload the page",
     "invalidTitle": "Please check the form",
     "notFoundTitle": "Not found",
-    "refusedTitle": "This can't be done"
+    "refusedTitle": "This can't be done",
+    "forbiddenTitle": "Not allowed",
+    "forbiddenMessage": "Your role does not allow this change. Ask an administrator if you need it."
   },
   "notFound": {
     "title": "Page not found",
@@ -93,7 +97,13 @@
     "account": "Account",
     "user": "User",
     "language": "Language",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "mainNavigation": "Main navigation",
+    "roles": {
+      "VIEWER": "Viewer · read only",
+      "STAFFER": "Staffer",
+      "ADMIN": "Administrator"
+    }
   },
   "search": {
     "button": "Search…",
@@ -219,7 +229,10 @@
       "anyTechnology": "Any technology",
       "anySkill": "Any skill",
       "minLevel": "Minimum level",
-      "includeFormer": "Include former employees"
+      "includeFormer": "Include former employees",
+      "anyLevel": "Any level",
+      "pickSkillFirst": "Pick a skill first",
+      "atLeast": "{{level}} or above"
     },
     "roles": {
       "editTitle": "Edit roles",
@@ -259,7 +272,8 @@
       "description": "Every mission this employee was assigned to, most recent first.",
       "emptyTitle": "No missions yet",
       "emptyDescription": "Assign this employee from a mission's page."
-    }
+    },
+    "reportsToPrefix": "Reports to"
   },
   "availability": {
     "overbooked": "Overbooked",
@@ -272,9 +286,10 @@
     "from": "From",
     "openEnded": "No end date (open-ended)",
     "presets": {
-      "twoWeeks": "Next 2 weeks",
-      "month": "Next month",
-      "quarter": "Next 3 months"
+      "twoWeeks": "2 weeks",
+      "month": "Month",
+      "quarter": "Quarter",
+      "custom": "Custom"
     },
     "minAvailability": "Availability",
     "anyAvailability": "Any",
@@ -282,19 +297,28 @@
     "resultsFor": "Over {{period}}, most available first",
     "columns": {
       "availability": "Availability",
-      "assignments": "Missions in this period"
+      "assignments": "Missions in this period",
+      "free": "Free"
     },
     "noAssignment": "Free: no mission in this period",
     "until": "until {{date}}",
     "emptyTitle": "Nobody matches",
-    "emptyDescription": "Try a lower availability, a different period, or fewer filters."
+    "emptyDescription": "Try a lower availability, a different period, or fewer filters.",
+    "previousPeriod": "Previous period",
+    "nextPeriod": "Next period",
+    "fromPrefix": "From",
+    "openEndedDisplay_one": "showing the next {{count}} day",
+    "openEndedDisplay_other": "showing the next {{count}} days"
   },
   "validation": {
     "required": "This field is required",
     "url": "Enter a full link starting with http:// or https://"
   },
   "reference": {
-    "lastUpdated": "Last updated"
+    "lastUpdated": "Last updated",
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "updatedOn": "Updated {{date}}"
   },
   "customers": {
     "title": "Customers",
@@ -353,7 +377,8 @@
     "skillCount_one": "{{count}} skill",
     "skillCount_other": "{{count}} skills",
     "noSkills": "No skills yet.",
-    "viewEmployees": "View employees with this technology"
+    "viewEmployees": "View employees with this technology",
+    "summary": "{{technologies}} technologies · {{skills}} skills"
   },
   "missions": {
     "title": "Missions",
@@ -418,7 +443,8 @@
       "atLeast": "{{level}} or above",
       "added": "Required skill added.",
       "updated": "Required level updated.",
-      "removed": "Required skill removed."
+      "removed": "Required skill removed.",
+      "covered": "Covered"
     },
     "skillMatch": {
       "summary": "{{met}}/{{total}} skills",
@@ -464,7 +490,14 @@
       "noRequirements": "No requirements",
       "overbookedTooltip": "This person is booked at {{value}} at peak during this period.",
       "overbookedTitle": "Saved, but overbooked",
-      "overbookedMessage": "{{name}} is now booked at {{value}} at peak over this period."
+      "overbookedMessage": "{{name}} is now booked at {{value}} at peak over this period.",
+      "moved": "Moved: {{period}}."
+    },
+    "status": {
+      "current": "Current status",
+      "moveTo": "Move to {{status}}",
+      "cancel": "Mark as cancelled",
+      "reopen": "Reopen as prospect"
     }
   },
   "dashboard": {
@@ -490,12 +523,12 @@
       "empty": "Nobody yet"
     },
     "missions": {
-      "title": "Missions",
-      "description": "By status",
+      "title": "Mission pipeline",
+      "description": "From first contact to delivery",
       "empty": "No missions yet"
     },
     "endingSoon": {
-      "title": "Assignments ending soon",
+      "title": "Coming free",
       "description": "These people become available in the next 30 days",
       "empty": "No assignment ends in the next 30 days"
     },
@@ -506,7 +539,146 @@
       "emptyDescription": "Everyone's workload fits within 100%.",
       "missionCount_one": "{{count}} mission in this period",
       "missionCount_other": "{{count}} missions in this period",
-      "peak": "Peak {{value}}"
+      "peak": "Peak {{value}}",
+      "atPeak": "at peak"
+    },
+    "eyebrow": "Overview · {{period}}",
+    "headline": {
+      "available": "<mark>{{available}} of {{total}} people</mark> can take on new work over the next {{days}} days.",
+      "overbooked_one": "<over>{{count}} person is overbooked</over>.",
+      "overbooked_other": "<over>{{count}} people are overbooked</over>.",
+      "nobodyOverbooked": "Nobody is overbooked."
+    },
+    "figures": {
+      "averageLoad": "Average load",
+      "ongoing": "Ongoing missions",
+      "pipeline": "In the pipeline",
+      "employees": "Employees",
+      "openPositions": "Open positions"
+    },
+    "capacity": {
+      "title": "Team capacity",
+      "description": "Who can take on work over the next {{days}} days, by how booked they are at peak.",
+      "open": "Open the timeline",
+      "buckets": {
+        "free": "Fully free",
+        "mostly": "Mostly free",
+        "partly": "Partly free",
+        "full": "Fully booked",
+        "over": "Overbooked"
+      },
+      "partial": "Least booked {{shown}} of {{total}} people",
+      "nobody": "Nobody",
+      "more_one": "{{count}} more",
+      "more_other": "{{count}} more"
+    },
+    "openPositions": {
+      "title": "Open positions",
+      "description_one": "{{count}} position to fill on active missions",
+      "description_other": "{{count}} positions to fill on active missions",
+      "empty": "Every position is filled",
+      "noDate": "No date",
+      "started": "Already started",
+      "startsIn_one": "starts in {{count}} day",
+      "startsIn_other": "starts in {{count}} days"
     }
+  },
+  "timeline": {
+    "today": "Today",
+    "legend": {
+      "mission": "Mission (darker = more of their time)",
+      "over": "Overbooked",
+      "away": "Time off"
+    },
+    "overbookedDays_one": "Overbooked for {{count}} day",
+    "overbookedDays_other": "Overbooked for {{count}} days",
+    "dragHint": "Drag to move · drag an edge to change a date"
+  },
+  "absences": {
+    "title": "Time off",
+    "description": "Holidays, sick leave and training reduce availability.",
+    "add": "Add time off",
+    "createTitle": "Add time off",
+    "editTitle": "Edit time off",
+    "period": "Dates",
+    "periodPlaceholder": "Pick the first and last day",
+    "comment": "Comment",
+    "created": "Time off added.",
+    "updated": "Time off updated.",
+    "deleted": "Time off deleted.",
+    "deleteTitle": "Delete this time off?",
+    "deleteMessage": "The time off from {{period}} will be deleted.",
+    "none": "No time off recorded.",
+    "noneUpcoming": "No upcoming time off.",
+    "now": "Now",
+    "showPast_one": "Show {{count}} past absence",
+    "showPast_other": "Show {{count}} past absences",
+    "hidePast": "Hide past absences",
+    "workingDays_one": "{{count}} working day",
+    "workingDays_other": "{{count}} working days",
+    "daysOff_one": "{{count}} day off",
+    "daysOff_other": "{{count}} days off",
+    "types": {
+      "HOLIDAY": "Holiday",
+      "SICK_LEAVE": "Sick leave",
+      "TRAINING": "Training",
+      "OTHER": "Other"
+    }
+  },
+  "needs": {
+    "title": "Open positions",
+    "description": "People this mission still needs.",
+    "summary": "{{open}} open · {{filled}} filled",
+    "add": "Add position",
+    "createTitle": "Add an open position",
+    "editTitle": "Edit open position",
+    "role": "Role",
+    "anyRole": "Any role",
+    "anySeniority": "Any seniority",
+    "anyone": "Anyone",
+    "commentPlaceholder": "What the person will do, constraints…",
+    "skillsHint": "Candidates are matched against the mission's required skills.",
+    "created": "Open position added.",
+    "updated": "Open position updated.",
+    "deleted": "Open position deleted.",
+    "deleteTitle": "Delete this open position?",
+    "deleteMessage": "The position will be removed from the mission.",
+    "deleteFilledMessage": "The position will be removed from the mission. The person assigned to it stays assigned.",
+    "emptyTitle": "No open positions",
+    "emptyDescription": "Add the people this mission needs to find the best candidates.",
+    "findCandidates": "Find candidates",
+    "candidatesFor": "Candidates: {{need}}",
+    "scoreExplained": "Score out of 100: how well the person fits (required skills, seniority, role), multiplied by how much of the position's time they are free.",
+    "score": "Score {{score}} out of 100",
+    "assign": "Assign",
+    "filled": "{{name}} was assigned.",
+    "roleMatch": "Has the role",
+    "roleMissing": "Other role",
+    "alreadyOnMission": "Already on this mission",
+    "openCount_one": "{{count}} open",
+    "openCount_other": "{{count}} open"
+  },
+  "profile": {
+    "open": "Profile",
+    "print": "Print or save as PDF",
+    "printHint": "In the print dialog, choose \"Save as PDF\" to get a file. Turn off headers and footers for a clean page.",
+    "hideCustomers": "Hide customer names",
+    "withAppreciations": "Include appreciations",
+    "customerAlias": "Customer {{letter}}",
+    "missions_one": "mission",
+    "missions_other": "missions",
+    "customers_one": "customer",
+    "customers_other": "customers",
+    "skills_one": "skill",
+    "skills_other": "skills",
+    "technologies_one": "technology",
+    "technologies_other": "technologies",
+    "expertise": "Expertise",
+    "experience": "Experience",
+    "noSkills": "No skills recorded yet.",
+    "noMissions": "No missions yet.",
+    "levelLegend": "Level from 1 (novice) to 5 (expert).",
+    "now": "today",
+    "generated": "Profile generated on {{date}} with Staffing Hub"
   }
 }

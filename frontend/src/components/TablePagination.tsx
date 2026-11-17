@@ -10,12 +10,16 @@ export function TablePagination({ page, onChange }: { page: PageMetadata; onChan
   const last = Math.min(first + page.size - 1, page.totalElements);
 
   return (
-    <Group justify="space-between" px="md" py="sm" wrap="wrap" gap="sm">
-      <Text size="sm" c="dimmed" className="tabular-nums">
-        {t('common.showingRange', { first, last, total: page.totalElements })}
-      </Text>
+    <Group justify="space-between" pt="lg" px={4} wrap="wrap" gap="sm">
+      <Text className="sh-label tabular-nums">{t('common.showingRange', { first, last, total: page.totalElements })}</Text>
       {page.totalPages > 1 && (
-        <Pagination total={page.totalPages} value={page.number + 1} onChange={(value) => onChange(value - 1)} size="sm" />
+        <Pagination
+          total={page.totalPages}
+          value={page.number + 1}
+          onChange={(value) => onChange(value - 1)}
+          size="sm"
+          radius="xl"
+        />
       )}
     </Group>
   );

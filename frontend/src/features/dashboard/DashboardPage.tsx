@@ -1,33 +1,27 @@
-import { Badge, Button, Card, Grid, Group, RingProgress, SimpleGrid, Skeleton, Stack, Table, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
-import { DonutChart } from '@mantine/charts';
+import { Button, Skeleton, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import {
-  IconAlertTriangle,
-  IconArrowRight,
-  IconBriefcase,
-  IconCalendarDue,
-  IconMoodSmile,
-  IconPlus,
-  IconUserCheck,
-  IconUsers,
-} from '@tabler/icons-react';
-import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { IconArrowUpRight, IconBriefcase, IconCalendarDue, IconChartBar, IconPlus, IconUserSearch, IconUsers } from '@tabler/icons-react';
+import { Trans, useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { useDashboard } from '@/api/hooks/dashboard';
-import type { MissionStatus } from '@/api/types';
+import { useAvailability } from '@/api/hooks/employees';
+import type { Dashboard, MissionStatus } from '@/api/types';
 import { useSession } from '@/auth/session';
-import { MissionStatusBadge } from '@/components/badges';
+import { usePermissions } from '@/auth/permissions';
 import { PersonCell } from '@/components/EmployeeAvatar';
 import { EmptyState } from '@/components/EmptyState';
-import { AvailabilityMeter } from '@/components/OccupationBar';
 import { PageHeader } from '@/components/PageHeader';
 import { QueryError } from '@/components/QueryError';
-import { SectionCard } from '@/components/SectionCard';
-import { MISSION_STATUS_COLORS, MISSION_STATUSES } from '@/lib/enums';
-import { daysFromToday, formatDate, formatPercent, formatShortDate } from '@/lib/format';
+import { Section } from '@/components/Section';
+import { MISSION_STATUSES } from '@/lib/enums';
+import { missionColor } from '@/lib/timeline';
+import { needTitle } from '../missions/needTitle';
+import { daysFromToday, formatPercent, formatPeriod } from '@/lib/format';
+import dayjs from 'dayjs';
 import { EmployeeFormModal } from '../employees/EmployeeFormModal';
 import { MissionFormModal } from '../missions/MissionFormModal';
+import { CapacityBoard } from './CapacityBoard';
+import classes from './DashboardPage.module.css';
 
 function greetingKey(): 'dashboard.greeting.morning' | 'dashboard.greeting.afternoon' | 'dashboard.greeting.evening' {
   const hour = new Date().getHours();
@@ -38,8 +32,8 @@ function greetingKey(): 'dashboard.greeting.morning' | 'dashboard.greeting.after
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const session = useSession();
+  const { canEdit } = usePermissions();
   const dashboard = useDashboard();
   const [newEmployee, newEmployeeModal] = useDisclosure();
   const [newMission, newMissionModal] = useDisclosure();
@@ -48,13 +42,14 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={firstName ? t(greetingKey(), { name: firstName }) : t('dashboard.title')}
-        description={
+        eyebrow={
           dashboard.data
-            ? t('dashboard.description', { from: formatDate(dashboard.data.from), to: formatDate(dashboard.data.to) })
-            : t('dashboard.descriptionLoading')
+            ? t('dashboard.eyebrow', { period: formatPeriod(dashboard.data.from, dashboard.data.to) })
+            : t('nav.sections.overview')
         }
+        title={firstName ? t(greetingKey(), { name: firstName }) : t('dashboard.title')}
         actions={
+          canEdit && (
           <>
             <Button variant="default" leftSection={<IconPlus size={16} />} onClick={newEmployeeModal.open}>
               {t('employees.new')}
@@ -63,147 +58,19 @@ export default function DashboardPage() {
               {t('missions.new')}
             </Button>
           </>
+          )
         }
       />
 
       {dashboard.isPending ? (
-        <Stack gap="lg">
-          <SimpleGrid cols={{ base: 1, xs: 2, lg: 4 }}>
-            {[0, 1, 2, 3].map((index) => (
-              <Skeleton key={index} height={112} radius="lg" />
-            ))}
-          </SimpleGrid>
-          <Skeleton height={320} radius="lg" />
+        <Stack gap="xl">
+          <Skeleton height={140} radius="md" maw={720} />
+          <Skeleton height={220} radius="md" />
         </Stack>
       ) : dashboard.isError ? (
         <QueryError error={dashboard.error} onRetry={() => void dashboard.refetch()} />
       ) : (
-        <Stack gap="lg">
-          <SimpleGrid cols={{ base: 1, xs: 2, lg: 4 }} spacing="lg">
-            <StatCard
-              label={t('dashboard.stats.activeEmployees')}
-              value={dashboard.data.activeEmployees}
-              icon={<IconUsers size={22} />}
-              color="brand"
-              to="/employees"
-            />
-            <StatCard
-              label={t('dashboard.stats.available')}
-              value={dashboard.data.availableEmployees}
-              hint={t('dashboard.stats.availableHint')}
-              icon={<IconUserCheck size={22} />}
-              color="teal"
-              to={`/availability?minAvailability=50&from=${dashboard.data.from}&to=${dashboard.data.to}`}
-              ring={dashboard.data.activeEmployees ? (dashboard.data.availableEmployees / dashboard.data.activeEmployees) * 100 : 0}
-            />
-            <StatCard
-              label={t('dashboard.stats.overbooked')}
-              value={dashboard.data.overbookedEmployees}
-              hint={t('dashboard.stats.overbookedHint')}
-              icon={<IconAlertTriangle size={22} />}
-              color={dashboard.data.overbookedEmployees > 0 ? 'red' : 'gray'}
-              to={`/availability?from=${dashboard.data.from}&to=${dashboard.data.to}`}
-            />
-            <StatCard
-              label={t('dashboard.stats.ongoingMissions')}
-              value={dashboard.data.missionsByStatus.ONGOING ?? 0}
-              icon={<IconBriefcase size={22} />}
-              color="grape"
-              to="/missions?status=ONGOING"
-            />
-          </SimpleGrid>
-
-          <Grid gutter="lg">
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <SectionCard
-                title={t('dashboard.mostAvailable.title')}
-                description={t('dashboard.mostAvailable.description')}
-                actions={<ViewAll to={`/availability?from=${dashboard.data.from}&to=${dashboard.data.to}`} />}
-              >
-                {dashboard.data.mostAvailable.length === 0 ? (
-                  <EmptyState compact icon={<IconUsers size={22} />} title={t('dashboard.mostAvailable.empty')} />
-                ) : (
-                  <Stack gap="md">
-                    {dashboard.data.mostAvailable.map((employee) => (
-                      <Group key={employee.id} justify="space-between" wrap="nowrap">
-                        <PersonCell person={employee} secondary={t(`enums.seniority.${employee.seniority}`)} />
-                        <AvailabilityMeter occupation={employee.peakOccupation} availability={employee.availability} compact />
-                      </Group>
-                    ))}
-                  </Stack>
-                )}
-              </SectionCard>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <SectionCard title={t('dashboard.missions.title')} description={t('dashboard.missions.description')} actions={<ViewAll to="/missions" />}>
-                <MissionsByStatus counts={dashboard.data.missionsByStatus} />
-              </SectionCard>
-            </Grid.Col>
-          </Grid>
-
-          <Grid gutter="lg">
-            <Grid.Col span={{ base: 12, md: 7 }}>
-              <SectionCard
-                title={t('dashboard.endingSoon.title')}
-                description={t('dashboard.endingSoon.description')}
-                icon={<IconCalendarDue size={18} stroke={1.6} />}
-                flush
-              >
-                {dashboard.data.assignmentsEndingSoon.length === 0 ? (
-                  <EmptyState compact icon={<IconCalendarDue size={22} />} title={t('dashboard.endingSoon.empty')} />
-                ) : (
-                  <Table.ScrollContainer minWidth={520}>
-                    <Table>
-                      <Table.Tbody>
-                        {dashboard.data.assignmentsEndingSoon.map((assignment) => {
-                          const days = daysFromToday(assignment.endDate);
-                          return (
-                            <Table.Tr key={assignment.id} className="clickable-row" onClick={() => navigate(`/missions/${assignment.mission.id}`)}>
-                              <Table.Td>
-                                <PersonCell person={assignment.employee} secondary={`${assignment.mission.label} · ${assignment.mission.customer.label}`} />
-                              </Table.Td>
-                              <Table.Td ta="right">
-                                <Text size="sm">{formatShortDate(assignment.endDate)}</Text>
-                                <Badge size="xs" color={days <= 7 ? 'orange' : 'gray'} variant="light">
-                                  {days === 0 ? t('common.today') : t('common.inDays', { count: days })}
-                                </Badge>
-                              </Table.Td>
-                            </Table.Tr>
-                          );
-                        })}
-                      </Table.Tbody>
-                    </Table>
-                  </Table.ScrollContainer>
-                )}
-              </SectionCard>
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, md: 5 }}>
-              <SectionCard
-                title={t('dashboard.overbooked.title')}
-                description={t('dashboard.overbooked.description')}
-                icon={<IconAlertTriangle size={18} stroke={1.6} color="var(--mantine-color-red-6)" />}
-              >
-                {dashboard.data.overbooked.length === 0 ? (
-                  <EmptyState compact icon={<IconMoodSmile size={22} />} title={t('dashboard.overbooked.empty')} description={t('dashboard.overbooked.emptyDescription')} />
-                ) : (
-                  <Stack gap="md">
-                    {dashboard.data.overbooked.map((employee) => (
-                      <Group key={employee.id} justify="space-between" wrap="nowrap">
-                        <PersonCell
-                          person={employee}
-                          secondary={t('dashboard.overbooked.missionCount', { count: employee.assignments.length })}
-                        />
-                        <Badge color="red" variant="light" className="tabular-nums">
-                          {t('dashboard.overbooked.peak', { value: formatPercent(employee.peakOccupation) })}
-                        </Badge>
-                      </Group>
-                    ))}
-                  </Stack>
-                )}
-              </SectionCard>
-            </Grid.Col>
-          </Grid>
-        </Stack>
+        <DashboardContent data={dashboard.data} />
       )}
 
       <EmployeeFormModal opened={newEmployee} onClose={newEmployeeModal.close} />
@@ -212,88 +79,213 @@ export default function DashboardPage() {
   );
 }
 
-interface StatCardProps {
-  label: string;
-  value: number;
-  hint?: string;
-  icon: ReactNode;
-  color: string;
-  to: string;
-  ring?: number;
-}
+function DashboardContent({ data }: { data: Dashboard }) {
+  const { t } = useTranslation();
+  const period = `from=${data.from}&to=${data.to}`;
+  // Everyone's load over the same period, for the capacity chart (most available first).
+  const team = useAvailability({ from: data.from, to: data.to, size: 100 });
+  const people = team.data?.content ?? [];
+  const averageLoad = people.length ? people.reduce((sum, person) => sum + person.peakOccupation, 0) / people.length : undefined;
 
-function StatCard({ label, value, hint, icon, color, to, ring }: StatCardProps) {
   return (
-    <UnstyledButton component={Link} to={to} style={{ display: 'block' }}>
-      <Card h="100%" style={{ transition: 'transform 120ms ease, box-shadow 120ms ease' }} className="stat-card">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <div>
-            <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.04em' }}>
-              {label}
-            </Text>
-            <Text fz={32} fw={700} lh={1.2} mt={6} className="tabular-nums">
-              {value}
-            </Text>
-            {hint && (
-              <Text size="xs" c="dimmed" mt={2}>
-                {hint}
-              </Text>
-            )}
-          </div>
-          {ring !== undefined ? (
-            <RingProgress
-              size={64}
-              thickness={7}
-              roundCaps
-              sections={[{ value: ring, color }]}
-              label={<Group justify="center" c={color}>{icon}</Group>}
+    <>
+      <div className={classes.hero}>
+        <div className={classes.headline}>
+          <Trans
+            i18nKey="dashboard.headline.available"
+            values={{ available: data.availableEmployees, total: data.activeEmployees, days: data.horizonDays }}
+            components={{ mark: <Link to={`/availability?minAvailability=50&${period}`} className="sh-mark" /> }}
+          />{' '}
+          {data.overbookedEmployees > 0 ? (
+            <Trans
+              i18nKey="dashboard.headline.overbooked"
+              count={data.overbookedEmployees}
+              components={{ over: <Link to={`/availability?${period}`} className={classes.over} /> }}
             />
           ) : (
-            <ThemeIcon size={48} radius="md" variant="light" color={color}>
-              {icon}
-            </ThemeIcon>
+            <span className={classes.calm}>{t('dashboard.headline.nobodyOverbooked')}</span>
           )}
-        </Group>
-      </Card>
-    </UnstyledButton>
+        </div>
+
+        <div className={classes.figures}>
+          <Figure value={averageLoad === undefined ? '—' : formatPercent(Math.round(averageLoad))} label={t('dashboard.figures.averageLoad')} to={`/availability?${period}`} />
+          <Figure value={data.missionsByStatus.ONGOING ?? 0} label={t('dashboard.figures.ongoing')} to="/missions?status=ONGOING" />
+          <Figure value={data.openNeedCount} label={t('dashboard.figures.openPositions')} to="/missions" />
+          <Figure value={data.activeEmployees} label={t('dashboard.figures.employees')} to="/employees" />
+        </div>
+      </div>
+
+      <Section
+        title={t('dashboard.capacity.title')}
+        description={t('dashboard.capacity.description', { days: data.horizonDays })}
+        icon={<IconChartBar size={17} stroke={1.8} />}
+        actions={<ViewAll to={`/availability?${period}`} label={t('dashboard.capacity.open')} />}
+        sheet="padded"
+      >
+        {team.isPending ? (
+          <Skeleton height={220} radius="md" />
+        ) : team.isError ? (
+          <QueryError error={team.error} onRetry={() => void team.refetch()} />
+        ) : people.length === 0 ? (
+          <EmptyState compact icon={<IconUsers size={22} stroke={1.5} />} title={t('dashboard.mostAvailable.empty')} />
+        ) : (
+          <CapacityBoard people={people} total={team.data?.page.totalElements ?? people.length} period={period} />
+        )}
+      </Section>
+
+      <div className={classes.split}>
+        <OpenPositions data={data} />
+
+        <Stack gap={40} style={{ minWidth: 0 }}>
+          <Section
+            title={t('dashboard.missions.title')}
+            description={t('dashboard.missions.description')}
+            icon={<IconBriefcase size={17} stroke={1.8} />}
+            actions={<ViewAll to="/missions" label={t('common.viewAll')} />}
+            sheet="padded"
+          >
+            <Pipeline counts={data.missionsByStatus} />
+          </Section>
+
+          <Section
+            title={t('dashboard.endingSoon.title')}
+            description={t('dashboard.endingSoon.description')}
+            icon={<IconCalendarDue size={17} stroke={1.8} />}
+            sheet="padded"
+          >
+            {data.assignmentsEndingSoon.length === 0 ? (
+              <EmptyState compact icon={<IconCalendarDue size={22} stroke={1.5} />} title={t('dashboard.endingSoon.empty')} />
+            ) : (
+              <div>
+                {data.assignmentsEndingSoon.map((assignment) => {
+                  const days = daysFromToday(assignment.endDate);
+                  return (
+                    <Link key={assignment.id} to={`/missions/${assignment.mission.id}`} className={classes.ending}>
+                      <div className={classes.date}>
+                        <div className={`${classes.dateDay} tabular-nums`}>{dayjs(assignment.endDate).format('D')}</div>
+                        <div className="sh-label">{dayjs(assignment.endDate).format('MMM')}</div>
+                      </div>
+                      <div className={classes.rail}>
+                        <span className={classes.railDot} data-soon={days <= 7 || undefined} />
+                      </div>
+                      <PersonCell
+                        person={assignment.employee}
+                        link={false}
+                        secondary={`${assignment.mission.label} · ${assignment.mission.customer.label}`}
+                      />
+                      <Stack gap={2} align="flex-end">
+                        <Text size="sm" fw={600} className="tabular-nums">
+                          {formatPercent(assignment.rate ?? 100)}
+                        </Text>
+                        <Text size="xs" fw={600} c={days <= 7 ? 'var(--sh-primary-text)' : 'dimmed'}>
+                          {days === 0 ? t('common.today') : t('common.inDays', { count: days })}
+                        </Text>
+                      </Stack>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        </Stack>
+      </div>
+    </>
   );
 }
 
-function ViewAll({ to }: { to: string }) {
-  const { t } = useTranslation();
+function Figure({ value, label, to }: { value: number | string; label: string; to: string }) {
   return (
-    <Button component={Link} to={to} size="xs" variant="subtle" rightSection={<IconArrowRight size={14} />}>
-      {t('common.viewAll')}
+    <Link to={to} className={classes.figure}>
+      <span className={`${classes.figureValue} tabular-nums`}>{value}</span>
+      <Text size="sm" fw={550} c="var(--sh-text-2)">
+        {label}
+      </Text>
+    </Link>
+  );
+}
+
+function ViewAll({ to, label }: { to: string; label: string }) {
+  return (
+    <Button component={Link} to={to} size="xs" variant="subtle" color="brand" rightSection={<IconArrowUpRight size={14} />}>
+      {label}
     </Button>
   );
 }
 
-function MissionsByStatus({ counts }: { counts: Partial<Record<MissionStatus, number>> }) {
+const STAGES: MissionStatus[] = MISSION_STATUSES;
+
+function Pipeline({ counts }: { counts: Partial<Record<MissionStatus, number>> }) {
   const { t } = useTranslation();
-  const total = MISSION_STATUSES.reduce((sum, status) => sum + (counts[status] ?? 0), 0);
+  const total = STAGES.reduce((sum, status) => sum + (counts[status] ?? 0), 0);
   if (total === 0) {
-    return <EmptyState compact icon={<IconBriefcase size={22} />} title={t('dashboard.missions.empty')} />;
+    return <EmptyState compact icon={<IconBriefcase size={22} stroke={1.5} />} title={t('dashboard.missions.empty')} />;
   }
-  const data = MISSION_STATUSES.filter((status) => (counts[status] ?? 0) > 0).map((status) => ({
-    name: t(`enums.missionStatus.${status}`),
-    value: counts[status] ?? 0,
-    color: `${MISSION_STATUS_COLORS[status]}.6`,
-  }));
+  const max = Math.max(...STAGES.map((status) => counts[status] ?? 0), 1);
   return (
-    <Group justify="space-around" wrap="wrap" gap="lg">
-      <DonutChart data={data} size={170} thickness={24} withTooltip tooltipDataSource="segment" chartLabel={total} paddingAngle={2} />
-      <Stack gap={8} miw={180}>
-        {MISSION_STATUSES.map((status) => (
-          <UnstyledButton key={status} component={Link} to={`/missions?status=${status}`}>
-            <Group justify="space-between" gap="lg">
-              <MissionStatusBadge value={status} />
-              <Text size="sm" fw={600} className="tabular-nums">
-                {counts[status] ?? 0}
-              </Text>
-            </Group>
-          </UnstyledButton>
-        ))}
-      </Stack>
-    </Group>
+    <div>
+      {STAGES.map((status, index) => {
+        const count = counts[status] ?? 0;
+        return (
+          <Link key={status} to={`/missions?status=${status}`} className={classes.stage}>
+            <span className="sh-label">{status === 'CANCELLED' ? '—' : String(index + 1).padStart(2, '0')}</span>
+            <Text size="sm" fw={600}>
+              {t(`enums.missionStatus.${status}`)}
+            </Text>
+            <div className={classes.stageTrack}>
+              <div className={classes.stageBar} data-status={status} style={{ width: `${(count / max) * 100}%` }} />
+            </div>
+            <span className={`${classes.stageCount} tabular-nums`}>{count}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Open positions on active missions, soonest first. */
+function OpenPositions({ data }: { data: Dashboard }) {
+  const { t } = useTranslation();
+  return (
+    <Section
+      title={t('dashboard.openPositions.title')}
+      description={t('dashboard.openPositions.description', { count: data.openNeedCount })}
+      icon={<IconUserSearch size={17} stroke={1.8} />}
+      sheet="padded"
+    >
+      {data.openNeeds.length === 0 ? (
+        <EmptyState compact icon={<IconUserSearch size={22} stroke={1.5} />} title={t('dashboard.openPositions.empty')} />
+      ) : (
+        <div>
+          {data.openNeeds.map(({ mission, need }) => {
+            const days = need.startDate ? daysFromToday(need.startDate) : undefined;
+            return (
+              <Link key={need.id} to={`/missions/${mission.id}`} className={classes.position}>
+                <span className={classes.positionSwatch} style={{ background: missionColor(mission.id) }} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <Text size="sm" fw={650} truncate>
+                    {needTitle(need, t)}
+                  </Text>
+                  <Text size="xs" c="dimmed" truncate>
+                    {mission.label} · {mission.customer.label}
+                  </Text>
+                </div>
+                <Stack gap={0} align="flex-end">
+                  <Text size="sm" fw={600} className="tabular-nums">
+                    {formatPercent(need.rate ?? 100)}
+                  </Text>
+                  <Text size="xs" fw={600} c={days !== undefined && days <= 14 ? 'var(--sh-primary-text)' : 'dimmed'}>
+                    {days === undefined
+                      ? t('dashboard.openPositions.noDate')
+                      : days <= 0
+                        ? t('dashboard.openPositions.started')
+                        : t('dashboard.openPositions.startsIn', { count: days })}
+                  </Text>
+                </Stack>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </Section>
   );
 }

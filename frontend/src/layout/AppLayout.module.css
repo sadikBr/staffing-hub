@@ -1,58 +1,168 @@
 .header {
-  background: var(--app-surface);
-  border-bottom: 1px solid var(--app-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+
+  /* Transparent over the page's glow at the top; frosted once the page scrolls under it. */
+  &[data-scrolled] {
+    background: color-mix(in srgb, var(--sh-bg) 78%, transparent);
+    backdrop-filter: saturate(1.6) blur(16px);
+    -webkit-backdrop-filter: saturate(1.6) blur(16px);
+    box-shadow: 0 1px 0 var(--sh-rule);
+  }
 }
 
-.navbar {
-  background: var(--app-surface);
-  border-right: 1px solid var(--app-border);
-}
-
-.main {
-  background: var(--app-bg);
-  min-height: 100dvh;
-}
-
-.content {
-  max-width: 1320px;
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  height: 68px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: var(--mantine-spacing-xl) var(--mantine-spacing-lg) calc(var(--mantine-spacing-xl) * 2);
+  padding: 0 32px;
 
   @media (max-width: $mantine-breakpoint-sm) {
-    padding: var(--mantine-spacing-md) var(--mantine-spacing-sm) var(--mantine-spacing-xl);
+    padding: 0 16px;
   }
 }
 
 .brand {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
-.searchButton {
-  width: min(420px, 40vw);
-  padding: 7px 10px 7px 12px;
-  border-radius: var(--mantine-radius-md);
-  border: 1px solid var(--app-border);
-  background: var(--app-bg);
-  color: var(--mantine-color-dimmed);
-  transition: border-color 120ms ease;
-
-  &:hover {
-    border-color: var(--mantine-color-brand-4);
-  }
+.navWrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
 }
 
-.sectionLabel {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--mantine-color-dimmed);
-  padding: 4px 12px 6px;
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-sheet);
+  min-width: 0;
 }
 
 .navLink {
-  border-radius: var(--mantine-radius-md);
-  font-weight: 500;
-  margin-bottom: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--sh-text-2);
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+
+  &:hover {
+    color: var(--sh-text);
+    background: var(--sh-hover);
+  }
+
+  &[data-active] {
+    background: var(--sh-primary-soft);
+    color: var(--sh-primary-text);
+    font-weight: 650;
+  }
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  width: 220px;
+  padding: 0 8px 0 14px;
+  border-radius: 12px;
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-sheet);
+  color: var(--sh-text-3);
+  font-size: 14px;
+  transition: color 140ms ease;
+
+  &:hover {
+    color: var(--sh-text);
+  }
+
+  @media (max-width: $mantine-breakpoint-lg) {
+    width: 160px;
+  }
+}
+
+.kbd {
+  margin-left: auto;
+  font-family: var(--sh-font-mono);
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--sh-surface-2);
+  color: var(--sh-text-3);
+}
+
+.content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 32px 112px;
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    padding: 24px 16px 72px;
+  }
+}
+
+/* ---------- Mobile menu ---------- */
+
+.drawerSection + .drawerSection {
+  margin-top: var(--mantine-spacing-xl);
+}
+
+.drawerLink {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 0;
+  font-family: var(--sh-font-serif);
+  font-variation-settings: 'opsz' 48;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+
+  &[data-active] em {
+    background: var(--sh-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  em {
+    font-style: normal;
+  }
+}
+
+.drawerIndex {
+  font-family: var(--sh-font-mono);
+  font-size: 11px;
+  color: var(--sh-text-3);
+  width: 22px;
 }

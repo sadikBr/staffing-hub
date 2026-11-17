@@ -1,0 +1,54 @@
+.toolbar {
+  padding: 10px;
+  margin-bottom: 16px;
+}
+
+.results {
+  padding: 4px 8px;
+  overflow: hidden;
+}
+
+.stackTag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: var(--sh-surface-2);
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--sh-text-2);
+  white-space: nowrap;
+
+  &[data-more] {
+    background: var(--sh-primary-soft);
+    color: var(--sh-primary-text);
+  }
+}
+
+.mix {
+  display: inline-flex;
+  gap: 2px;
+  width: 72px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+
+  span {
+    height: 100%;
+  }
+}
+
+.chevron {
+  color: var(--sh-text-3);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+
+  :global(.mantine-Table-tr):hover & {
+    opacity: 1;
+    transform: none;
+  }
+}

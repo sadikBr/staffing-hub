@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import type { Employee, EmployeePage } from '@/api/types';
 import { server } from '@/test/server';
+import { FULL_PERMISSIONS, PermissionsContext } from '@/auth/permissions';
 import { renderPage } from '@/test/render';
 import EmployeesPage from './EmployeesPage';
 
@@ -77,5 +78,18 @@ describe('EmployeesPage', () => {
     expect(requests.at(-1)?.searchParams.get('community')).toBe('OWL');
     // The search is kept in the URL, so the view can be bookmarked and shared.
     expect(location.current?.search).toBe('?community=OWL&search=ada');
+  });
+
+  it('hides changes from viewers', async () => {
+    server.use(http.get('*/api/employees', () => HttpResponse.json(page([employee({})]))));
+
+    renderPage(
+      <PermissionsContext.Provider value={{ ...FULL_PERMISSIONS, role: 'VIEWER', canEdit: false, canAdmin: false }}>
+        <EmployeesPage />
+      </PermissionsContext.Provider>,
+    );
+
+    expect(await screen.findByText('Ada Lovelace')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /New employee/ })).not.toBeInTheDocument();
   });
 });

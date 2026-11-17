@@ -98,6 +98,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/missions/{id}/needs/{needId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace a need's details; returns the whole mission */
+        put: operations["updateNeed"];
+        post?: never;
+        /** Delete a need (the assignment that filled it, if any, is kept) */
+        delete: operations["deleteNeed"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/missions/{id}/assignments/{assignmentId}": {
         parameters: {
             query?: never;
@@ -110,7 +128,7 @@ export interface paths {
         /** Replace an assignment's details */
         put: operations["updateAssignment"];
         post?: never;
-        /** Remove an assignment from a mission */
+        /** Remove an assignment from a mission (the need it filled, if any, opens again) */
         delete: operations["deleteAssignment"];
         options?: never;
         head?: never;
@@ -188,6 +206,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/employees/{employeeId}/absences/{absenceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace an absence's details */
+        put: operations["update"];
+        post?: never;
+        /** Delete an absence */
+        delete: operations["delete_5"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers/{id}": {
         parameters: {
             query?: never;
@@ -201,7 +237,7 @@ export interface paths {
         put: operations["updateCustomerById"];
         post?: never;
         /** Delete a customer */
-        delete: operations["delete_5"];
+        delete: operations["delete_6"];
         options?: never;
         head?: never;
         patch?: never;
@@ -279,6 +315,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/missions/{id}/needs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add an open position (need) to a mission; returns the whole mission */
+        post: operations["createNeed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/missions/{id}/needs/{needId}/fill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fill a need: assigns the employee with the need's dates and rate; returns the whole mission */
+        post: operations["fillNeed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/missions/{id}/assignments": {
         parameters: {
             query?: never;
@@ -314,6 +384,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/employees/{employeeId}/absences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List an employee's absences, most recent first */
+        get: operations["findAbsences"];
+        put?: never;
+        /** Record an absence (refused if it overlaps another one of the same employee) */
+        post: operations["create_5"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers": {
         parameters: {
             query?: never;
@@ -325,7 +413,61 @@ export interface paths {
         get: operations["findAllCustomers"];
         put?: never;
         /** Create a customer */
-        post: operations["create_5"];
+        post: operations["create_6"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/missions/{id}/assignments/{assignmentId}/period": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Move an assignment in time, without changing anything else (days worked are capped to the new period) */
+        patch: operations["moveAssignment"];
+        trace?: never;
+    };
+    "/api/missions/{id}/needs/{needId}/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rank the employees who could fill a need, best first
+         * @description Score out of 100: availability over the need's period (45), the mission's required skills (35), seniority (10) and role (10). A criterion the need does not specify counts as met.
+         */
+        get: operations["findNeedCandidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current user's role and what they may do */
+        get: operations["me"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -519,6 +661,31 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        MissionNeedFill: {
+            /** Format: uuid */
+            assignmentId: string;
+            employee: components["schemas"]["EmployeeSummary"];
+        };
+        MissionNeedResponse: {
+            /** Format: uuid */
+            id: string;
+            role?: components["schemas"]["RoleResponse"];
+            /** @enum {string} */
+            seniority?: "JUNIOR" | "MID_LEVEL" | "SENIOR";
+            /** Format: date */
+            startDate?: string;
+            /** Format: date */
+            endDate?: string;
+            rate?: number;
+            comment?: string;
+            filledBy?: components["schemas"]["MissionNeedFill"];
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         MissionResponse: {
             /** Format: uuid */
             id: string;
@@ -535,6 +702,7 @@ export interface components {
             projectManager?: components["schemas"]["EmployeeSummary"];
             requiredSkills: components["schemas"]["MissionSkillResponse"][];
             assignments: components["schemas"]["MissionAssignmentResponse"][];
+            needs: components["schemas"]["MissionNeedResponse"][];
             /** Format: int64 */
             version: number;
             /** Format: date-time */
@@ -558,6 +726,20 @@ export interface components {
         SetMissionSkillRequest: {
             /** @enum {string} */
             requiredLevel?: "NOVICE" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
+        };
+        MissionNeedRequest: {
+            /** Format: uuid */
+            roleId?: string;
+            /** @enum {string} */
+            seniority?: "JUNIOR" | "MID_LEVEL" | "SENIOR";
+            /** Format: date */
+            startDate?: string;
+            /** Format: date */
+            endDate?: string;
+            rate?: number;
+            comment?: string;
+            /** Format: int64 */
+            version?: number;
         };
         MissionAssignmentRequest: {
             /** Format: uuid */
@@ -628,8 +810,50 @@ export interface components {
         SetEmployeeRolesRequest: {
             roleIds: string[];
         };
+        AbsenceRequest: {
+            /** @enum {string} */
+            type: "HOLIDAY" | "SICK_LEAVE" | "TRAINING" | "OTHER";
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            comment?: string;
+            /** Format: int64 */
+            version?: number;
+        };
+        AbsenceResponse: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "HOLIDAY" | "SICK_LEAVE" | "TRAINING" | "OTHER";
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            /** Format: int32 */
+            workingDays: number;
+            comment?: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         CustomerCreationUpdateRequest: {
             label: string;
+            /** Format: int64 */
+            version?: number;
+        };
+        FillNeedRequest: {
+            /** Format: uuid */
+            employeeId: string;
+        };
+        AssignmentPeriodRequest: {
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate?: string;
             /** Format: int64 */
             version?: number;
         };
@@ -659,6 +883,32 @@ export interface components {
             content: components["schemas"]["MissionResponse"][];
             page: components["schemas"]["PageMetadata"];
         };
+        NeedCandidateResponse: {
+            /** Format: uuid */
+            id: string;
+            firstName: string;
+            lastName: string;
+            /** @enum {string} */
+            seniority: "JUNIOR" | "MID_LEVEL" | "SENIOR";
+            /** @enum {string} */
+            community: "TIGER" | "BEAR" | "SHARK" | "SQUIRREL" | "DRAGON" | "EAGLE" | "IGUANA" | "UNICORN" | "OWL" | "WOLF";
+            /** Format: int32 */
+            score: number;
+            availability: number;
+            peakOccupation: number;
+            /** Format: int32 */
+            absentDays: number;
+            skillMatches: components["schemas"]["RequiredSkillMatch"][];
+            seniorityMatch: boolean;
+            roleMatch: boolean;
+            alreadyOnMission: boolean;
+        };
+        MeResponse: {
+            /** @enum {string} */
+            role: "VIEWER" | "STAFFER" | "ADMIN";
+            canEdit: boolean;
+            canAdmin: boolean;
+        };
         PagedModelEmployeeResponse: {
             content: components["schemas"]["EmployeeResponse"][];
             page: components["schemas"]["PageMetadata"];
@@ -684,9 +934,20 @@ export interface components {
             id: string;
             label: string;
             projectName: string;
+            description?: string;
             /** @enum {string} */
             status: "PROSPECT" | "CONFIRMED" | "ONGOING" | "COMPLETED" | "CANCELLED";
             customer: components["schemas"]["CustomerResponse"];
+        };
+        AbsenceSummary: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "HOLIDAY" | "SICK_LEAVE" | "TRAINING" | "OTHER";
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
         };
         EmployeeAvailabilityResponse: {
             /** Format: uuid */
@@ -702,7 +963,10 @@ export interface components {
             peakOccupation: number;
             availability: number;
             overbooked: boolean;
+            /** Format: int32 */
+            absentDays: number;
             assignments: components["schemas"]["OverlappingAssignment"][];
+            absences: components["schemas"]["AbsenceSummary"][];
         };
         OverlappingAssignment: {
             /** Format: uuid */
@@ -713,6 +977,8 @@ export interface components {
             /** Format: date */
             endDate?: string;
             rate?: number;
+            /** Format: int64 */
+            version: number;
         };
         PagedModelEmployeeAvailabilityResponse: {
             content: components["schemas"]["EmployeeAvailabilityResponse"][];
@@ -737,6 +1003,9 @@ export interface components {
             mostAvailable: components["schemas"]["EmployeeAvailabilityResponse"][];
             overbooked: components["schemas"]["EmployeeAvailabilityResponse"][];
             assignmentsEndingSoon: components["schemas"]["EndingAssignment"][];
+            /** Format: int32 */
+            openNeedCount: number;
+            openNeeds: components["schemas"]["OpenNeed"][];
         };
         EndingAssignment: {
             /** Format: uuid */
@@ -746,6 +1015,10 @@ export interface components {
             /** Format: date */
             endDate: string;
             rate?: number;
+        };
+        OpenNeed: {
+            mission: components["schemas"]["MissionSummary"];
+            need: components["schemas"]["MissionNeedResponse"];
         };
         AppConfigResponse: {
             authEnabled: boolean;
@@ -1082,6 +1355,54 @@ export interface operations {
             };
         };
     };
+    updateNeed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MissionNeedRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MissionResponse"];
+                };
+            };
+        };
+    };
+    deleteNeed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     findAssignment: {
         parameters: {
             query?: never;
@@ -1321,6 +1642,54 @@ export interface operations {
             };
         };
     };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+                absenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AbsenceResponse"];
+                };
+            };
+        };
+    };
+    delete_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+                absenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     findCustomerById: {
         parameters: {
             query?: never;
@@ -1369,7 +1738,7 @@ export interface operations {
             };
         };
     };
-    delete_5: {
+    delete_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -1579,6 +1948,59 @@ export interface operations {
             };
         };
     };
+    createNeed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MissionNeedRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MissionResponse"];
+                };
+            };
+        };
+    };
+    fillNeed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FillNeedRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MissionResponse"];
+                };
+            };
+        };
+    };
     createAssignment: {
         parameters: {
             query?: never;
@@ -1672,6 +2094,54 @@ export interface operations {
             };
         };
     };
+    findAbsences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AbsenceResponse"][];
+                };
+            };
+        };
+    };
+    create_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employeeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AbsenceResponse"];
+                };
+            };
+        };
+    };
     findAllCustomers: {
         parameters: {
             query?: never;
@@ -1692,7 +2162,7 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -1712,6 +2182,79 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CustomerResponse"];
+                };
+            };
+        };
+    };
+    moveAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                assignmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentPeriodRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MissionAssignmentResponse"];
+                };
+            };
+        };
+    };
+    findNeedCandidates: {
+        parameters: {
+            query?: {
+                /** @description How many candidates to return (1 to 50) */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+                needId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NeedCandidateResponse"][];
+                };
+            };
+        };
+    };
+    me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MeResponse"];
                 };
             };
         };
