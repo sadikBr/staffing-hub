@@ -1,5 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.mission;
 
+import org.jspecify.annotations.Nullable;
+
 import com.brahimsadik.staffinghub.dtos.skill.SkillResponse;
 import com.brahimsadik.staffinghub.enums.SkillLevel;
 
@@ -10,6 +12,6 @@ import com.brahimsadik.staffinghub.enums.SkillLevel;
  * @param meetsRequirement    true when the employee has the skill at the required level or above (any level when
  *                            none is required)
  */
-public record RequiredSkillMatch(SkillResponse skill, SkillLevel requiredLevel, SkillLevel employeeLevel,
+public record RequiredSkillMatch(SkillResponse skill, @Nullable SkillLevel requiredLevel, @Nullable SkillLevel employeeLevel,
         boolean meetsRequirement) {
 }

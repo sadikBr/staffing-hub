@@ -1,5 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.mission;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -12,14 +14,14 @@ import com.brahimsadik.staffinghub.dtos.employee.EmployeeSummary;
 public record MissionAssignmentResponse(
         UUID id,
         EmployeeSummary employee,
-        LocalDate startDate,
-        LocalDate endDate,
-        Integer duration,
-        BigDecimal rate,
-        String appreciation,
-        String comment,
+        @Nullable LocalDate startDate,
+        @Nullable LocalDate endDate,
+        @Nullable Integer duration,
+        @Nullable BigDecimal rate,
+        @Nullable String appreciation,
+        @Nullable String comment,
         List<RequiredSkillMatch> skillMatches,
-        AssignmentOccupation employeeOccupation,
+        @Nullable AssignmentOccupation employeeOccupation,
         Long version,
         Instant createdAt,
         Instant updatedAt) {

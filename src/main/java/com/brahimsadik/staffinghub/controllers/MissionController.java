@@ -31,6 +31,7 @@ import com.brahimsadik.staffinghub.enums.MissionStatus;
 import com.brahimsadik.staffinghub.services.MissionService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -52,13 +53,15 @@ public class MissionController {
     }
 
     @GetMapping
-    @Operation(summary = "List missions (paginated), optionally filtered by customer, status and business unit")
+    @Operation(summary = "List missions (paginated), optionally filtered by text, customer, status and business unit")
     public PagedModel<MissionResponse> findAllMissions(
+            @Parameter(description = "Part of the label, project name or customer name, case-insensitive")
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID customerId,
             @RequestParam(required = false) MissionStatus status,
             @RequestParam(required = false) BusinessUnit businessUnit,
             @ParameterObject @SortDefault(sort = "label") Pageable pageable) {
-        return new PagedModel<>(missionService.findAllMissions(customerId, status, businessUnit, pageable));
+        return new PagedModel<>(missionService.findAllMissions(search, customerId, status, businessUnit, pageable));
     }
 
     @GetMapping("/{id}")

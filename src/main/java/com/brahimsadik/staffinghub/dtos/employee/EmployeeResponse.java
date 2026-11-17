@@ -1,5 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.employee;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,11 +20,11 @@ public record EmployeeResponse(
         UUID id,
         String firstName,
         String lastName,
-        String comment,
+        @Nullable String comment,
         Seniority seniority,
         Community community,
-        LocalDate departureDate,
-        EmployeeSummary manager,
+        @Nullable LocalDate departureDate,
+        @Nullable EmployeeSummary manager,
         List<EmployeeSummary> staff,
         List<RoleResponse> roles,
         List<TechnologyResponse> technologies,

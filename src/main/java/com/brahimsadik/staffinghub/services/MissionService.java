@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -58,10 +59,18 @@ public class MissionService {
 
     /** Every filter is optional; the ones given are combined with AND. */
     @Transactional(readOnly = true)
-    public Page<MissionResponse> findAllMissions(UUID customerId, MissionStatus status, BusinessUnit businessUnit,
-            Pageable pageable) {
+    public Page<MissionResponse> findAllMissions(String search, UUID customerId, MissionStatus status,
+            BusinessUnit businessUnit, Pageable pageable) {
         final Specification<Mission> filters = (root, query, cb) -> {
             final var predicates = new ArrayList<Predicate>();
+            if (search != null && !search.isBlank()) {
+                final var pattern = "%" + search.trim().toLowerCase(Locale.ROOT).replace("\\", "\\\\")
+                        .replace("%", "\\%").replace("_", "\\_") + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("label")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("projectName")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("customer").get("label")), pattern, '\\')));
+            }
             if (customerId != null) {
                 predicates.add(cb.equal(root.get("customer").get("id"), customerId));
             }

@@ -1,5 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.availability;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,7 +25,7 @@ public record EmployeeAvailabilityResponse(
         String lastName,
         Seniority seniority,
         Community community,
-        LocalDate departureDate,
+        @Nullable LocalDate departureDate,
         BigDecimal peakOccupation,
         BigDecimal availability,
         boolean overbooked,

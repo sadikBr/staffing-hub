@@ -94,6 +94,10 @@ class MissionApiTests extends ApiTestSupport {
         mockMvc.perform(get("/api/missions").param("customerId", otherCustomer))
                 .andExpect(jsonPath("$.content", hasSize(1)))
                 .andExpect(jsonPath("$.content[0].label").value("D"));
+        mockMvc.perform(get("/api/missions").param("search", "project b"))
+                .andExpect(jsonPath("$.content[*].label").value(org.hamcrest.Matchers.contains("B")));
+        mockMvc.perform(get("/api/missions").param("search", "GLOBEX"))
+                .andExpect(jsonPath("$.content[*].label").value(org.hamcrest.Matchers.contains("D")));
         mockMvc.perform(get("/api/missions").param("size", "2"))
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.page.totalPages").value(2));
