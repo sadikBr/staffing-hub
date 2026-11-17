@@ -76,6 +76,19 @@ class ReferenceDataApiTests extends ApiTestSupport {
     }
 
     @Test
+    void filtersSkillsByTechnology() throws Exception {
+        final var java = createLabelled("/technologies", "Java");
+        final var python = createLabelled("/technologies", "Python");
+        create("/skills", "{\"label\": \"Streams\", \"technologyId\": \"%s\"}".formatted(java));
+        create("/skills", "{\"label\": \"Asyncio\", \"technologyId\": \"%s\"}".formatted(python));
+
+        mockMvc.perform(get("/skills")).andExpect(jsonPath("$", hasSize(2)));
+        mockMvc.perform(get("/skills").param("technologyId", java))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].label").value("Streams"));
+    }
+
+    @Test
     void skillsRequireAnExistingTechnology() throws Exception {
         mockMvc.perform(post("/skills").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"label\": \"Testing\", \"technologyId\": \"%s\"}".formatted(UUID.randomUUID())))

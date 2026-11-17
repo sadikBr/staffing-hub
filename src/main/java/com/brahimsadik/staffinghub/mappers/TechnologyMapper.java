@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.brahimsadik.staffinghub.dtos.technology.TechnologyCreationUpdateRequest;
@@ -19,8 +20,10 @@ public interface TechnologyMapper {
 
     TechnologyWithSkillsResponse toTechnologyWithSkillsResponse(Technology technology);
 
+    @Mapping(target = "version", ignore = true)
     Technology toTechnology(TechnologyCreationUpdateRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateTechnology(TechnologyCreationUpdateRequest request, @MappingTarget Technology technology);
 
     default List<TechnologyResponse> toSortedTechnologyResponses(Collection<Technology> technologies) {

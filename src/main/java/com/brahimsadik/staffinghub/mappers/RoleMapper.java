@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.brahimsadik.staffinghub.dtos.role.RoleCreationUpdateRequest;
@@ -16,8 +17,10 @@ public interface RoleMapper {
 
     RoleResponse toRoleResponse(Role role);
 
+    @Mapping(target = "version", ignore = true)
     Role toRole(RoleCreationUpdateRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateRole(RoleCreationUpdateRequest request, @MappingTarget Role role);
 
     default List<RoleResponse> toSortedRoleResponses(Collection<Role> roles) {

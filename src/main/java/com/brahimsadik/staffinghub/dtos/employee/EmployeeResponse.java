@@ -1,5 +1,6 @@
 package com.brahimsadik.staffinghub.dtos.employee;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -25,5 +26,8 @@ public record EmployeeResponse(
         List<EmployeeSummary> staff,
         List<RoleResponse> roles,
         List<TechnologyResponse> technologies,
-        List<EmployeeSkillResponse> skills) {
+        List<EmployeeSkillResponse> skills,
+        Long version,
+        Instant createdAt,
+        Instant updatedAt) {
 }

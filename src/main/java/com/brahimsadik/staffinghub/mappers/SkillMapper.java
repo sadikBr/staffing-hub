@@ -19,8 +19,10 @@ public interface SkillMapper {
     SkillResponse toSkillResponse(Skill skill);
 
     /** The technology is resolved and set by the service. */
+    @Mapping(target = "version", ignore = true)
     Skill toSkill(SkillCreationUpdateRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateSkill(SkillCreationUpdateRequest request, @MappingTarget Skill skill);
 
     default List<SkillResponse> toSortedSkillResponses(Collection<Skill> skills) {

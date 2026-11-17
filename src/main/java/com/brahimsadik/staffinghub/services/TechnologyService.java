@@ -52,6 +52,7 @@ public class TechnologyService {
             throw duplicateLabel(request.label());
         }
 
+        OptimisticLocking.checkVersion("technology", technology.getVersion(), request.version());
         technologyMapper.updateTechnology(request, technology);
         return technologyMapper.toTechnologyResponse(technologyRepository.saveAndFlush(technology));
     }

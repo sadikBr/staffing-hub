@@ -45,13 +45,17 @@ public interface MissionMapper {
     EmployeeAssignmentResponse toEmployeeAssignmentResponse(MissionAssignment assignment);
 
     /** The customer and project manager are resolved and validated by the service. */
+    @Mapping(target = "version", ignore = true)
     Mission toMission(MissionCreationUpdateRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateMission(MissionCreationUpdateRequest request, @MappingTarget Mission mission);
 
     /** The employee is resolved and validated by the service. */
+    @Mapping(target = "version", ignore = true)
     MissionAssignment toMissionAssignment(MissionAssignmentRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateMissionAssignment(MissionAssignmentRequest request, @MappingTarget MissionAssignment assignment);
 
     default List<MissionSkillResponse> toSortedMissionSkillResponses(Collection<MissionSkill> skills) {

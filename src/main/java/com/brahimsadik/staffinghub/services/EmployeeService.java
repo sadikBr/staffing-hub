@@ -76,6 +76,7 @@ public class EmployeeService {
     /** Full replacement: a missing or null {@code managerId} removes the employee's manager. */
     public EmployeeResponse updateEmployeeById(UUID id, EmployeeCreationUpdateRequest request) {
         final var employee = getEmployee(id);
+        OptimisticLocking.checkVersion("employee", employee.getVersion(), request.version());
         employeeMapper.updateEmployee(request, employee);
         assignManager(employee, request.managerId());
         return employeeMapper.toEmployeeResponse(employeeRepository.saveAndFlush(employee));
@@ -99,6 +100,7 @@ public class EmployeeService {
         final var employee = getEmployee(id);
         employee.setRoles(findAllOrFail("role", request.roleIds(), roleRepository::findAllById,
                 role -> role.getId()));
+        employeeRepository.flush();
         return employeeMapper.toEmployeeResponse(employee);
     }
 
@@ -107,6 +109,7 @@ public class EmployeeService {
         employee.setTechnologies(findAllOrFail("technology", request.technologyIds(),
                 technologyRepository::findAllById, technology -> technology.getId()));
         employee.removeSkillsOutsideTechnologies();
+        employeeRepository.flush();
         return employeeMapper.toEmployeeResponse(employee);
     }
 

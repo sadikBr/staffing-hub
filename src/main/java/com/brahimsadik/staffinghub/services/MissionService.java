@@ -83,6 +83,7 @@ public class MissionService {
 
     public MissionResponse updateMissionById(UUID id, MissionCreationUpdateRequest request) {
         final var mission = getMission(id);
+        OptimisticLocking.checkVersion("mission", mission.getVersion(), request.version());
         missionMapper.updateMission(request, mission);
         assignCustomerAndProjectManager(mission, request);
         return missionMapper.toMissionResponse(missionRepository.saveAndFlush(mission));
@@ -133,6 +134,7 @@ public class MissionService {
     public MissionAssignmentResponse updateAssignment(UUID missionId, UUID assignmentId,
             MissionAssignmentRequest request) {
         final var assignment = getAssignment(getMission(missionId), assignmentId);
+        OptimisticLocking.checkVersion("assignment", assignment.getVersion(), request.version());
         missionMapper.updateMissionAssignment(request, assignment);
         applyAssignmentRules(assignment, request);
         return missionMapper.toMissionAssignmentResponse(missionAssignmentRepository.saveAndFlush(assignment));

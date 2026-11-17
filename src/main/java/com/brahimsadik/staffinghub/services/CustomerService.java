@@ -52,6 +52,7 @@ public class CustomerService {
             throw duplicateLabel(request.label());
         }
 
+        OptimisticLocking.checkVersion("customer", customer.getVersion(), request.version());
         customerMapper.updateCustomer(request, customer);
         return customerMapper.toCustomerResponse(customerRepository.saveAndFlush(customer));
     }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -44,9 +45,9 @@ public class SkillController {
     }
 
     @GetMapping
-    @Operation(summary = "List all skills")
-    public List<SkillResponse> findAllSkills() {
-        return skillService.findAllSkills();
+    @Operation(summary = "List all skills, optionally only those of one technology")
+    public List<SkillResponse> findAllSkills(@RequestParam(required = false) UUID technologyId) {
+        return skillService.findAllSkills(technologyId);
     }
 
     @GetMapping("/{id}")

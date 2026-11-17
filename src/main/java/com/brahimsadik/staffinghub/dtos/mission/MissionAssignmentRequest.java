@@ -13,7 +13,8 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Used for both creation and full replacement (PUT). {@code duration} is the number of days actually worked, which
- * may be less than the start/end period but not more. {@code rate} is the occupation rate as a percentage.
+ * may be less than the start/end period but not more. {@code rate} is the occupation rate as a percentage. On
+ * update, {@code version} is the version that was read: if the assignment changed since, the update is refused (409).
  */
 public record MissionAssignmentRequest(
         @NotNull UUID employeeId,
@@ -22,5 +23,6 @@ public record MissionAssignmentRequest(
         @Positive Integer duration,
         @DecimalMin(value = "0", inclusive = false) @DecimalMax("100") @Digits(integer = 3, fraction = 2) BigDecimal rate,
         @Size(max = 5000) String appreciation,
-        @Size(max = 5000) String comment) {
+        @Size(max = 5000) String comment,
+        Long version) {
 }

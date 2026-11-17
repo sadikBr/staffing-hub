@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.mappers;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.brahimsadik.staffinghub.dtos.customer.CustomerCreationUpdateRequest;
@@ -12,8 +13,10 @@ public interface CustomerMapper {
 
     CustomerResponse toCustomerResponse(Customer customer);
 
+    @Mapping(target = "version", ignore = true)
     Customer toCustomer(CustomerCreationUpdateRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateCustomer(CustomerCreationUpdateRequest request, @MappingTarget Customer customer);
 
 }

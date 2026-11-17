@@ -11,7 +11,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/** Used for both creation and full replacement (PUT). A missing or null {@code projectManagerId} means none. */
+/**
+ * Used for both creation and full replacement (PUT). A missing or null {@code projectManagerId} means none. On
+ * update, {@code version} is the version that was read: if the mission changed since, the update is refused (409).
+ */
 public record MissionCreationUpdateRequest(
         @NotBlank @Size(max = 255) String label,
         @NotBlank @Size(max = 255) String projectName,
@@ -21,5 +24,6 @@ public record MissionCreationUpdateRequest(
         BusinessUnit businessUnit,
         @NotNull MissionStatus status,
         @NotNull UUID customerId,
-        UUID projectManagerId) {
+        UUID projectManagerId,
+        Long version) {
 }

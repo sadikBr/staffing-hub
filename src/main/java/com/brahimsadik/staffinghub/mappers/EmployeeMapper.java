@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
@@ -24,8 +25,10 @@ public interface EmployeeMapper {
     EmployeeSkillResponse toEmployeeSkillResponse(EmployeeSkill employeeSkill);
 
     /** The manager is resolved and validated by the service. */
+    @Mapping(target = "version", ignore = true)
     Employee toEmployee(EmployeeCreationUpdateRequest request);
 
+    @Mapping(target = "version", ignore = true)
     void updateEmployee(EmployeeCreationUpdateRequest request, @MappingTarget Employee employee);
 
     default List<EmployeeSummary> toSortedEmployeeSummaries(Collection<Employee> employees) {

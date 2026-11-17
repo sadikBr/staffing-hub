@@ -13,7 +13,8 @@ import jakarta.validation.constraints.Size;
 /**
  * Used for both creation and full replacement (PUT). {@code managerId} is optional: leaving it out or sending null
  * means the employee has no manager. {@code departureDate} is optional: set it when the employee leaves (or will
- * leave); they are then hidden from searches by default from that date, but keep their history.
+ * leave); they are then hidden from searches by default from that date, but keep their history. On update,
+ * {@code version} is the version that was read: if the employee changed since, the update is refused (409).
  */
 public record EmployeeCreationUpdateRequest(
         @NotBlank @Size(max = 255) String firstName,
@@ -22,5 +23,6 @@ public record EmployeeCreationUpdateRequest(
         @NotNull Seniority seniority,
         @NotNull Community community,
         UUID managerId,
-        LocalDate departureDate) {
+        LocalDate departureDate,
+        Long version) {
 }

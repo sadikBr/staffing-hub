@@ -43,8 +43,11 @@ public class SkillService {
     }
 
     @Transactional(readOnly = true)
-    public List<SkillResponse> findAllSkills() {
-        return skillRepository.findAll(Sort.by("label")).stream().map(skillMapper::toSkillResponse).toList();
+    public List<SkillResponse> findAllSkills(UUID technologyId) {
+        final var sort = Sort.by("label");
+        final var skills = technologyId == null ? skillRepository.findAll(sort)
+                : skillRepository.findByTechnologyId(technologyId, sort);
+        return skills.stream().map(skillMapper::toSkillResponse).toList();
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +70,7 @@ public class SkillService {
                     "The skill is assigned to employees, so its technology cannot be changed");
         }
 
+        OptimisticLocking.checkVersion("skill", skill.getVersion(), request.version());
         skillMapper.updateSkill(request, skill);
         skill.setTechnology(technology);
         return skillMapper.toSkillResponse(skillRepository.saveAndFlush(skill));

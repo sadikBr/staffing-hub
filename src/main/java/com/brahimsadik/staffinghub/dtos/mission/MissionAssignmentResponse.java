@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.dtos.mission;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -18,5 +19,8 @@ public record MissionAssignmentResponse(
         String appreciation,
         String comment,
         List<RequiredSkillMatch> skillMatches,
-        AssignmentOccupation employeeOccupation) {
+        AssignmentOccupation employeeOccupation,
+        Long version,
+        Instant createdAt,
+        Instant updatedAt) {
 }

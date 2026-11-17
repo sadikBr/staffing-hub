@@ -50,6 +50,7 @@ public class RoleService {
             throw duplicateLabel(request.label());
         }
 
+        OptimisticLocking.checkVersion("role", role.getVersion(), request.version());
         roleMapper.updateRole(request, role);
         return roleMapper.toRoleResponse(roleRepository.saveAndFlush(role));
     }
