@@ -17,5 +17,6 @@ public record MissionAssignmentResponse(
         BigDecimal rate,
         String appreciation,
         String comment,
-        List<RequiredSkillMatch> skillMatches) {
+        List<RequiredSkillMatch> skillMatches,
+        AssignmentOccupation employeeOccupation) {
 }

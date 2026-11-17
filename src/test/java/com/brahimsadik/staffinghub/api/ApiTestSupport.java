@@ -57,4 +57,16 @@ abstract class ApiTestSupport {
                 .formatted(firstName, manager);
     }
 
+    protected static String employeeJson(String firstName, String lastName, String seniority, String community,
+            String departureDate) {
+        return """
+                {"firstName": "%s", "lastName": "%s", "seniority": "%s", "community": "%s", "departureDate": %s}"""
+                .formatted(firstName, lastName, seniority, community,
+                        departureDate == null ? "null" : "\"" + departureDate + "\"");
+    }
+
+    protected static String quoted(String value) {
+        return value == null ? "null" : "\"" + value + "\"";
+    }
+
 }

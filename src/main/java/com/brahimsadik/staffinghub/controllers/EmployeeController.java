@@ -22,12 +22,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.brahimsadik.staffinghub.dtos.availability.AvailabilityCriteria;
+import com.brahimsadik.staffinghub.dtos.availability.EmployeeAvailabilityResponse;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
+import com.brahimsadik.staffinghub.dtos.employee.EmployeeSearchCriteria;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeTechnologiesRequest;
 import com.brahimsadik.staffinghub.dtos.employeeskill.SetEmployeeSkillLevelRequest;
 import com.brahimsadik.staffinghub.dtos.mission.EmployeeAssignmentResponse;
+import com.brahimsadik.staffinghub.services.AvailabilityService;
 import com.brahimsadik.staffinghub.services.EmployeeService;
 import com.brahimsadik.staffinghub.services.MissionService;
 
@@ -43,6 +47,7 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
     private final MissionService missionService;
+    private final AvailabilityService availabilityService;
 
     @PostMapping
     @Operation(summary = "Create an employee")
@@ -55,10 +60,22 @@ public class EmployeeController {
 
     /** Paginated: {@code ?page=0&size=20&sort=lastName,asc}. Sorted by last then first name by default. */
     @GetMapping
-    @Operation(summary = "List employees (paginated)")
-    public PagedModel<EmployeeResponse> findAllEmployees(
+    @Operation(summary = "Search employees (paginated); every filter is optional, former employees are hidden by default")
+    public PagedModel<EmployeeResponse> searchEmployees(@ParameterObject EmployeeSearchCriteria criteria,
             @ParameterObject @SortDefault(sort = { "lastName", "firstName" }, direction = Sort.Direction.ASC) Pageable pageable) {
-        return new PagedModel<>(employeeService.findAllEmployees(pageable));
+        return new PagedModel<>(employeeService.searchEmployees(criteria, pageable));
+    }
+
+    @GetMapping("/availability")
+    @Operation(summary = "Find who is available over a period, most available first (paginated)",
+            description = """
+                    Accepts the same filters as the employee search. Availability is what the employee can take on \
+                    for the whole period: 100% minus their peak occupation on any single day. Assignments without \
+                    a start date are ignored, without an end date are ongoing, and without a rate count as 100%. \
+                    An employee who leaves during the period has 0% availability.""")
+    public PagedModel<EmployeeAvailabilityResponse> findAvailability(@ParameterObject EmployeeSearchCriteria search,
+            @ParameterObject @Validated AvailabilityCriteria period, @ParameterObject Pageable pageable) {
+        return new PagedModel<>(availabilityService.findAvailability(search, period, pageable));
     }
 
     @GetMapping("/{id}")

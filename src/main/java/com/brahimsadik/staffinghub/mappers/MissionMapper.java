@@ -11,6 +11,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import com.brahimsadik.staffinghub.domain.OccupationCalculator;
+import com.brahimsadik.staffinghub.dtos.mission.AssignmentOccupation;
 import com.brahimsadik.staffinghub.dtos.mission.EmployeeAssignmentResponse;
 import com.brahimsadik.staffinghub.dtos.mission.MissionAssignmentRequest;
 import com.brahimsadik.staffinghub.dtos.mission.MissionAssignmentResponse;
@@ -35,9 +37,11 @@ public interface MissionMapper {
     MissionSkillResponse toMissionSkillResponse(MissionSkill missionSkill);
 
     @Mapping(target = "skillMatches", expression = "java(toSkillMatches(assignment))")
+    @Mapping(target = "employeeOccupation", expression = "java(toEmployeeOccupation(assignment))")
     MissionAssignmentResponse toMissionAssignmentResponse(MissionAssignment assignment);
 
     @Mapping(target = "skillMatches", expression = "java(toSkillMatches(assignment))")
+    @Mapping(target = "employeeOccupation", expression = "java(toEmployeeOccupation(assignment))")
     EmployeeAssignmentResponse toEmployeeAssignmentResponse(MissionAssignment assignment);
 
     /** The customer and project manager are resolved and validated by the service. */
@@ -63,6 +67,15 @@ public interface MissionMapper {
                 .thenComparing(assignment -> assignment.getEmployee().getLastName())
                 .thenComparing(assignment -> assignment.getEmployee().getFirstName()))
                 .map(this::toMissionAssignmentResponse).toList();
+    }
+
+    default AssignmentOccupation toEmployeeOccupation(MissionAssignment assignment) {
+        if (assignment.getStartDate() == null) {
+            return null;
+        }
+        final var peak = OccupationCalculator.peakRate(assignment.getEmployee().getAssignments(),
+                assignment.getStartDate(), assignment.getEndDate());
+        return new AssignmentOccupation(peak, peak.compareTo(OccupationCalculator.FULL_TIME) > 0);
     }
 
     /** Compares the assigned employee's skill levels with each of the mission's required skills. */

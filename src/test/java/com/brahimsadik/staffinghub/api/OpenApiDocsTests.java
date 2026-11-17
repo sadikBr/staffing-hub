@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.api;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,9 +19,11 @@ class OpenApiDocsTests extends ApiTestSupport {
                 .andExpect(jsonPath("$.tags[*].name",
                         containsInAnyOrder("Customers", "Employees", "Missions", "Roles", "Skills", "Technologies")))
                 .andExpect(jsonPath("$.paths", hasKey("/employees/{id}/skills/{skillId}")))
-                // Pagination appears as separate page/size/sort query parameters, not one "pageable" object.
+                // Filters and pagination appear as separate query parameters, not as "criteria"/"pageable" objects.
                 .andExpect(jsonPath("$.paths['/employees'].get.parameters[*].name",
-                        containsInAnyOrder("page", "size", "sort")))
+                        hasItems("search", "skillId", "minSkillLevel", "includeFormer", "page", "size", "sort")))
+                .andExpect(jsonPath("$.paths['/employees/availability'].get.parameters[*].name",
+                        hasItems("from", "to", "minAvailability", "search", "page")))
                 .andExpect(jsonPath("$.components.schemas.EmployeeCreationUpdateRequest.required").isArray());
     }
 

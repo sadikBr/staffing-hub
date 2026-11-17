@@ -140,7 +140,9 @@ public class MissionService {
 
     public void deleteAssignment(UUID missionId, UUID assignmentId) {
         final var mission = getMission(missionId);
-        mission.getAssignments().remove(getAssignment(mission, assignmentId));
+        final var assignment = getAssignment(mission, assignmentId);
+        assignment.getEmployee().getAssignments().remove(assignment);
+        mission.getAssignments().remove(assignment);
     }
 
     /** Most recent first; undated assignments last. */
@@ -189,7 +191,7 @@ public class MissionService {
             }
         }
 
-        assignment.setEmployee(findReferencedEmployee(request.employeeId(), "employee"));
+        assignment.assignTo(findReferencedEmployee(request.employeeId(), "employee"));
     }
 
     private Employee findReferencedEmployee(UUID id, String role) {

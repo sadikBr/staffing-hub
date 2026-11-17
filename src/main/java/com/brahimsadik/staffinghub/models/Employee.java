@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.models;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -69,6 +70,10 @@ public class Employee {
     @JoinColumn(name = "manager_id")
     private Employee manager;
 
+    /** The employee is a former employee from this date onwards. Null while they are (and will stay) employed. */
+    @Column(name = "departure_date")
+    private LocalDate departureDate;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -94,6 +99,10 @@ public class Employee {
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmployeeSkill> skills = new HashSet<>();
+
+    /** Read-only view: assignments are managed through {@link Mission#getAssignments()}. */
+    @OneToMany(mappedBy = "employee")
+    private Set<MissionAssignment> assignments = new HashSet<>();
 
     public boolean hasTechnology(UUID technologyId) {
         return technologies.stream().anyMatch(technology -> technology.getId().equals(technologyId));

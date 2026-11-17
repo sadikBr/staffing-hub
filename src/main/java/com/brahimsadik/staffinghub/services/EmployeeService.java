@@ -1,5 +1,7 @@
 package com.brahimsadik.staffinghub.services;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeResponse;
+import com.brahimsadik.staffinghub.dtos.employee.EmployeeSearchCriteria;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeTechnologiesRequest;
 import com.brahimsadik.staffinghub.dtos.employeeskill.SetEmployeeSkillLevelRequest;
@@ -24,6 +27,7 @@ import com.brahimsadik.staffinghub.exceptions.ResourceNotFoundException;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
+import com.brahimsadik.staffinghub.repositories.EmployeeSpecifications;
 import com.brahimsadik.staffinghub.repositories.MissionAssignmentRepository;
 import com.brahimsadik.staffinghub.repositories.RoleRepository;
 import com.brahimsadik.staffinghub.repositories.SkillRepository;
@@ -42,6 +46,7 @@ public class EmployeeService {
     private final SkillRepository skillRepository;
     private final MissionAssignmentRepository missionAssignmentRepository;
     private final EmployeeMapper employeeMapper;
+    private final Clock clock;
 
     public EmployeeResponse create(EmployeeCreationUpdateRequest request) {
         final var employee = employeeMapper.toEmployee(request);
@@ -50,8 +55,17 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<EmployeeResponse> findAllEmployees(Pageable pageable) {
-        return employeeRepository.findAll(pageable).map(employeeMapper::toEmployeeResponse);
+    public Page<EmployeeResponse> searchEmployees(EmployeeSearchCriteria criteria, Pageable pageable) {
+        validate(criteria);
+        return employeeRepository.findAll(EmployeeSpecifications.matching(criteria, LocalDate.now(clock)), pageable)
+                .map(employeeMapper::toEmployeeResponse);
+    }
+
+    /** Rejects filter combinations that cannot be meant. */
+    static void validate(EmployeeSearchCriteria criteria) {
+        if (criteria.minSkillLevel() != null && criteria.skillId() == null) {
+            throw new BusinessRuleViolationException("minSkillLevel can only be used together with skillId");
+        }
     }
 
     @Transactional(readOnly = true)

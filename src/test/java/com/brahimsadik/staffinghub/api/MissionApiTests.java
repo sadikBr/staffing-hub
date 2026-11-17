@@ -319,10 +319,6 @@ class MissionApiTests extends ApiTestSupport {
                 .formatted(employeeId, quoted(startDate), quoted(endDate), duration, rate);
     }
 
-    private static String quoted(String value) {
-        return value == null ? "null" : "\"" + value + "\"";
-    }
-
     private ResultActions assign(String mission, String json) throws Exception {
         return mockMvc.perform(post("/missions/{id}/assignments", mission)
                 .contentType(MediaType.APPLICATION_JSON).content(json));

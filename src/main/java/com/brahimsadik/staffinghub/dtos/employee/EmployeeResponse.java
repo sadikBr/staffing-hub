@@ -1,5 +1,6 @@
 package com.brahimsadik.staffinghub.dtos.employee;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public record EmployeeResponse(
         String comment,
         Seniority seniority,
         Community community,
+        LocalDate departureDate,
         EmployeeSummary manager,
         List<EmployeeSummary> staff,
         List<RoleResponse> roles,

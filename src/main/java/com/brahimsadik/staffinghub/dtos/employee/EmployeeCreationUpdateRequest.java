@@ -1,5 +1,6 @@
 package com.brahimsadik.staffinghub.dtos.employee;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import com.brahimsadik.staffinghub.enums.Community;
@@ -11,7 +12,8 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Used for both creation and full replacement (PUT). {@code managerId} is optional: leaving it out or sending null
- * means the employee has no manager.
+ * means the employee has no manager. {@code departureDate} is optional: set it when the employee leaves (or will
+ * leave); they are then hidden from searches by default from that date, but keep their history.
  */
 public record EmployeeCreationUpdateRequest(
         @NotBlank @Size(max = 255) String firstName,
@@ -19,5 +21,6 @@ public record EmployeeCreationUpdateRequest(
         @Size(max = 5000) String comment,
         @NotNull Seniority seniority,
         @NotNull Community community,
-        UUID managerId) {
+        UUID managerId,
+        LocalDate departureDate) {
 }

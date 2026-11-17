@@ -70,4 +70,13 @@ public class MissionAssignment {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    /** Sets the employee and keeps {@link Employee#getAssignments()} in sync on both the old and new employee. */
+    public void assignTo(Employee newEmployee) {
+        if (employee != null) {
+            employee.getAssignments().remove(this);
+        }
+        employee = newEmployee;
+        newEmployee.getAssignments().add(this);
+    }
+
 }
