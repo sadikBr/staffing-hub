@@ -19,10 +19,12 @@ import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeRolesRequest;
 import com.brahimsadik.staffinghub.dtos.employee.SetEmployeeTechnologiesRequest;
 import com.brahimsadik.staffinghub.dtos.employeeskill.SetEmployeeSkillLevelRequest;
 import com.brahimsadik.staffinghub.exceptions.BusinessRuleViolationException;
+import com.brahimsadik.staffinghub.exceptions.ConflictException;
 import com.brahimsadik.staffinghub.exceptions.ResourceNotFoundException;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
+import com.brahimsadik.staffinghub.repositories.MissionAssignmentRepository;
 import com.brahimsadik.staffinghub.repositories.RoleRepository;
 import com.brahimsadik.staffinghub.repositories.SkillRepository;
 import com.brahimsadik.staffinghub.repositories.TechnologyRepository;
@@ -38,6 +40,7 @@ public class EmployeeService {
     private final RoleRepository roleRepository;
     private final TechnologyRepository technologyRepository;
     private final SkillRepository skillRepository;
+    private final MissionAssignmentRepository missionAssignmentRepository;
     private final EmployeeMapper employeeMapper;
 
     public EmployeeResponse create(EmployeeCreationUpdateRequest request) {
@@ -64,9 +67,16 @@ public class EmployeeService {
         return employeeMapper.toEmployeeResponse(employeeRepository.saveAndFlush(employee));
     }
 
-    /** The employee's staff are kept: they no longer have a manager. */
+    /**
+     * The employee's staff are kept: they no longer have a manager. Missions they manage lose their project manager.
+     * An employee with mission assignments cannot be deleted, so that staffing history is never lost silently.
+     */
     public void delete(UUID id) {
         final var employee = getEmployee(id);
+        if (missionAssignmentRepository.existsByEmployeeId(id)) {
+            throw new ConflictException(
+                    "The employee has mission assignments: remove them before deleting the employee");
+        }
         employee.getStaff().forEach(member -> member.setManager(null));
         employeeRepository.delete(employee);
     }
@@ -100,7 +110,8 @@ public class EmployeeService {
         }
 
         employee.setSkillLevel(skill, request.level());
-        return employeeMapper.toEmployeeResponse(employeeRepository.saveAndFlush(employee));
+        employeeRepository.flush();
+        return employeeMapper.toEmployeeResponse(employee);
     }
 
     public void removeEmployeeSkill(UUID employeeId, UUID skillId) {

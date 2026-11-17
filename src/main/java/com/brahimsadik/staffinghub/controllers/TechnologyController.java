@@ -22,9 +22,12 @@ import com.brahimsadik.staffinghub.dtos.technology.TechnologyResponse;
 import com.brahimsadik.staffinghub.dtos.technology.TechnologyWithSkillsResponse;
 import com.brahimsadik.staffinghub.services.TechnologyService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@Tag(name = "Technologies", description = "Technologies (e.g. Java, React) and the skills grouped under each one.")
 @RequiredArgsConstructor
 @RequestMapping("/technologies")
 public class TechnologyController {
@@ -32,6 +35,7 @@ public class TechnologyController {
     private final TechnologyService technologyService;
 
     @PostMapping
+    @Operation(summary = "Create a technology")
     public ResponseEntity<TechnologyResponse> create(@Validated @RequestBody TechnologyCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = technologyService.create(request);
@@ -40,22 +44,26 @@ public class TechnologyController {
     }
 
     @GetMapping
+    @Operation(summary = "List all technologies, with their skills")
     public List<TechnologyWithSkillsResponse> findAllTechnologies() {
         return technologyService.findAllTechnologies();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a technology by id, with its skills")
     public TechnologyWithSkillsResponse findTechnologyById(@PathVariable UUID id) {
         return technologyService.findTechnologyById(id);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update a technology")
     public TechnologyResponse updateTechnologyById(@PathVariable UUID id,
             @Validated @RequestBody TechnologyCreationUpdateRequest request) {
         return technologyService.updateTechnologyById(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a technology (and its skills)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         technologyService.delete(id);

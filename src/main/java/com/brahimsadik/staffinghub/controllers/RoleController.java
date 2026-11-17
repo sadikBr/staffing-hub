@@ -22,9 +22,12 @@ import com.brahimsadik.staffinghub.dtos.role.RoleCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.role.RoleResponse;
 import com.brahimsadik.staffinghub.services.RoleService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@Tag(name = "Roles", description = "Job roles an employee can hold (e.g. Tech Lead, Developer).")
 @RequiredArgsConstructor
 @RequestMapping("/roles")
 public class RoleController {
@@ -32,6 +35,7 @@ public class RoleController {
     private final RoleService roleService;
 
     @PostMapping
+    @Operation(summary = "Create a role")
     public ResponseEntity<RoleResponse> create(@Validated @RequestBody RoleCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = roleService.create(request);
@@ -40,22 +44,26 @@ public class RoleController {
     }
 
     @GetMapping
+    @Operation(summary = "List all roles")
     public List<RoleResponse> findAllRoles() {
         return roleService.findAllRoles();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a role by id")
     public RoleResponse findRoleById(@PathVariable UUID id) {
         return roleService.findRoleById(id);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update a role")
     public RoleResponse updateRoleById(@PathVariable UUID id,
             @Validated @RequestBody RoleCreationUpdateRequest request) {
         return roleService.updateRoleById(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a role")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         roleService.delete(id);

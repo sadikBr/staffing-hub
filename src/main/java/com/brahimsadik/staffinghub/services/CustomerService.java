@@ -14,6 +14,7 @@ import com.brahimsadik.staffinghub.exceptions.ResourceNotFoundException;
 import com.brahimsadik.staffinghub.mappers.CustomerMapper;
 import com.brahimsadik.staffinghub.models.Customer;
 import com.brahimsadik.staffinghub.repositories.CustomerRepository;
+import com.brahimsadik.staffinghub.repositories.MissionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +25,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final MissionRepository missionRepository;
 
     public CustomerResponse create(CustomerCreationUpdateRequest request) {
         if (customerRepository.existsByLabel(request.label())) {
@@ -54,8 +56,13 @@ public class CustomerService {
         return customerMapper.toCustomerResponse(customerRepository.saveAndFlush(customer));
     }
 
+    /** A customer with missions cannot be deleted. */
     public void delete(UUID id) {
-        customerRepository.delete(getCustomer(id));
+        final var customer = getCustomer(id);
+        if (missionRepository.existsByCustomerId(id)) {
+            throw new ConflictException("The customer has missions: delete them before deleting the customer");
+        }
+        customerRepository.delete(customer);
     }
 
     private Customer getCustomer(UUID id) {

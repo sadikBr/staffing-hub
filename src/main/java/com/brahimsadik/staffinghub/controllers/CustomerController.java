@@ -22,9 +22,12 @@ import com.brahimsadik.staffinghub.dtos.customer.CustomerCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.customer.CustomerResponse;
 import com.brahimsadik.staffinghub.services.CustomerService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@Tag(name = "Customers", description = "Clients that employees can be staffed on.")
 @RequiredArgsConstructor
 @RequestMapping("/customers")
 public class CustomerController {
@@ -32,6 +35,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping
+    @Operation(summary = "Create a customer")
     public ResponseEntity<CustomerResponse> create(@Validated @RequestBody CustomerCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = customerService.create(request);
@@ -40,22 +44,26 @@ public class CustomerController {
     }
 
     @GetMapping
+    @Operation(summary = "List all customers")
     public List<CustomerResponse> findAllCustomers() {
         return customerService.findAllCustomers();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a customer by id")
     public CustomerResponse findCustomerById(@PathVariable UUID id) {
         return customerService.findCustomerById(id);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update a customer")
     public CustomerResponse updateCustomerById(@PathVariable UUID id,
             @Validated @RequestBody CustomerCreationUpdateRequest request) {
         return customerService.updateCustomerById(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a customer")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         customerService.delete(id);

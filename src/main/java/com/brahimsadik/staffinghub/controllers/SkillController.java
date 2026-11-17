@@ -22,9 +22,12 @@ import com.brahimsadik.staffinghub.dtos.skill.SkillCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.skill.SkillResponse;
 import com.brahimsadik.staffinghub.services.SkillService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@Tag(name = "Skills", description = "Specific skills within a technology (e.g. Streams for Java).")
 @RequiredArgsConstructor
 @RequestMapping("/skills")
 public class SkillController {
@@ -32,6 +35,7 @@ public class SkillController {
     private final SkillService skillService;
 
     @PostMapping
+    @Operation(summary = "Create a skill")
     public ResponseEntity<SkillResponse> create(@Validated @RequestBody SkillCreationUpdateRequest request,
             UriComponentsBuilder uriBuilder) {
         final var response = skillService.create(request);
@@ -40,22 +44,26 @@ public class SkillController {
     }
 
     @GetMapping
+    @Operation(summary = "List all skills")
     public List<SkillResponse> findAllSkills() {
         return skillService.findAllSkills();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a skill by id")
     public SkillResponse findSkillById(@PathVariable UUID id) {
         return skillService.findSkillById(id);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update a skill")
     public SkillResponse updateSkillById(@PathVariable UUID id,
             @Validated @RequestBody SkillCreationUpdateRequest request) {
         return skillService.updateSkillById(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a skill (removes it from every employee)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         skillService.delete(id);
