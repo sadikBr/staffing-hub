@@ -6,10 +6,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.MockMvcBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
+
+import com.brahimsadik.staffinghub.config.AppRole;
 
 /**
- * Every MockMvc request is sent as an authenticated user (with a test JWT), so API tests focus on behaviour.
- * {@code SecurityApiTests} checks what happens without a token.
+ * Every MockMvc request is sent as an authenticated admin (with a test JWT), so API tests focus on behaviour.
+ * {@code SecurityApiTests} checks what happens without a token and with lesser roles.
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class SecurityTestConfiguration {
@@ -19,7 +24,12 @@ public class SecurityTestConfiguration {
 
     @Bean
     MockMvcBuilderCustomizer authenticateEveryRequest() {
-        return builder -> builder.defaultRequest(get("/").with(jwt()));
+        return builder -> builder.defaultRequest(get("/").with(asRole(AppRole.ADMIN)));
+    }
+
+    /** A test JWT with the authorities of the role (as {@code RoleClaimConverter} would give them). */
+    public static JwtRequestPostProcessor asRole(AppRole role) {
+        return jwt().authorities(role.authorities().stream().<GrantedAuthority>map(SimpleGrantedAuthority::new).toList());
     }
 
 }

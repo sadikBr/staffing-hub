@@ -86,4 +86,12 @@ class OccupationCalculatorTests {
         return assignment;
     }
 
+    @Test
+    void absencesReduceAvailabilityInProportionOfWorkingDays() {
+        assertThat(OccupationCalculator.availability(new BigDecimal("50"), 5, 20)).isEqualByComparingTo("37.5");
+        assertThat(OccupationCalculator.availability(new BigDecimal("0"), 0, 20)).isEqualByComparingTo("100");
+        assertThat(OccupationCalculator.availability(new BigDecimal("0"), 5, 0)).isEqualByComparingTo("100");
+        assertThat(OccupationCalculator.availability(new BigDecimal("0"), 20, 20)).isEqualByComparingTo("0");
+    }
+
 }

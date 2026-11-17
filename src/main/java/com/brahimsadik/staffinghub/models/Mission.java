@@ -97,6 +97,9 @@ public class Mission {
     @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<MissionAssignment> assignments = new HashSet<>();
 
+    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<MissionNeed> needs = new HashSet<>();
+
     /** Adds the skill to the mission's requirements, or changes its required level (null means any level). */
     public void requireSkill(Skill skill, SkillLevel requiredLevel) {
         skills.stream().filter(missionSkill -> missionSkill.getSkill().getId().equals(skill.getId())).findFirst()
@@ -112,6 +115,17 @@ public class Mission {
 
     public Optional<MissionAssignment> findAssignment(UUID assignmentId) {
         return assignments.stream().filter(assignment -> assignment.getId().equals(assignmentId)).findFirst();
+    }
+
+    public Optional<MissionNeed> findNeed(UUID needId) {
+        return needs.stream().filter(need -> need.getId().equals(needId)).findFirst();
+    }
+
+    /** Removes the assignment, opening again the need it filled, if any. */
+    public void removeAssignment(MissionAssignment assignment) {
+        needs.stream().filter(need -> assignment.equals(need.getFilledBy())).forEach(need -> need.setFilledBy(null));
+        assignment.getEmployee().getAssignments().remove(assignment);
+        assignments.remove(assignment);
     }
 
 }

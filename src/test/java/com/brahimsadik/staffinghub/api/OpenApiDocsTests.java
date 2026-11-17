@@ -17,7 +17,7 @@ class OpenApiDocsTests extends ApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.info.title").value("Staffing Hub API"))
                 .andExpect(jsonPath("$.tags[*].name",
-                        containsInAnyOrder("Application", "Customers", "Dashboard", "Employees", "Missions", "Roles", "Skills",
+                        containsInAnyOrder("Absences", "Application", "Customers", "Dashboard", "Employees", "Missions", "Roles", "Skills",
                                 "Technologies")))
                 .andExpect(jsonPath("$.paths", hasKey("/api/employees/{id}/skills/{skillId}")))
                 // Filters and pagination appear as separate query parameters, not as "criteria"/"pageable" objects.

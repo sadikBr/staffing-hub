@@ -13,12 +13,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.brahimsadik.staffinghub.domain.OccupationCalculator;
+import com.brahimsadik.staffinghub.domain.WorkingDays;
 import com.brahimsadik.staffinghub.dtos.availability.AvailabilityCriteria;
 import com.brahimsadik.staffinghub.dtos.availability.EmployeeAvailabilityResponse;
 import com.brahimsadik.staffinghub.dtos.availability.OverlappingAssignment;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeSearchCriteria;
 import com.brahimsadik.staffinghub.exceptions.BusinessRuleViolationException;
+import com.brahimsadik.staffinghub.mappers.AbsenceMapper;
 import com.brahimsadik.staffinghub.mappers.MissionMapper;
+import com.brahimsadik.staffinghub.models.Absence;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.models.MissionAssignment;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
@@ -39,6 +42,7 @@ public class AvailabilityService {
 
     private final EmployeeRepository employeeRepository;
     private final MissionMapper missionMapper;
+    private final AbsenceMapper absenceMapper;
 
     /**
      * Employees matching the search criteria, with their occupation over the period, most available first.
@@ -76,21 +80,26 @@ public class AvailabilityService {
 
     private EmployeeAvailabilityResponse toAvailability(Employee employee, LocalDate from, LocalDate to) {
         final var peak = OccupationCalculator.peakRate(employee.getAssignments(), from, to);
+        final var absences = employee.getAbsences().stream().filter(absence -> absence.overlaps(from, to))
+                .sorted(Comparator.comparing(Absence::getStartDate)).toList();
+        final var absentDays = WorkingDays.absentBetween(absences, from, to);
         final var leavesDuringPeriod = employee.getDepartureDate() != null
                 && (to == null || !employee.getDepartureDate().isAfter(to));
-        final var availability = leavesDuringPeriod ? BigDecimal.ZERO : OccupationCalculator.availability(peak);
+        final var availability = leavesDuringPeriod ? BigDecimal.ZERO
+                : OccupationCalculator.availability(peak, absentDays, to == null ? 0 : WorkingDays.between(from, to));
 
         final List<OverlappingAssignment> overlapping = employee.getAssignments().stream()
                 .filter(assignment -> overlaps(assignment, from, to))
                 .sorted(Comparator.comparing(MissionAssignment::getStartDate))
                 .map(assignment -> new OverlappingAssignment(assignment.getId(),
                         missionMapper.toMissionSummary(assignment.getMission()), assignment.getStartDate(),
-                        assignment.getEndDate(), assignment.getRate()))
+                        assignment.getEndDate(), assignment.getRate(), assignment.getVersion()))
                 .toList();
 
         return new EmployeeAvailabilityResponse(employee.getId(), employee.getFirstName(), employee.getLastName(),
                 employee.getSeniority(), employee.getCommunity(), employee.getDepartureDate(), peak, availability,
-                peak.compareTo(OccupationCalculator.FULL_TIME) > 0, overlapping);
+                peak.compareTo(OccupationCalculator.FULL_TIME) > 0, absentDays, overlapping,
+                absences.stream().map(absenceMapper::toAbsenceSummary).toList());
     }
 
     private static boolean overlaps(MissionAssignment assignment, LocalDate from, LocalDate to) {

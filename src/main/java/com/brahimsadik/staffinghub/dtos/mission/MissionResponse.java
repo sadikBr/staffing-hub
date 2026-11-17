@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.brahimsadik.staffinghub.dtos.customer.CustomerResponse;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeSummary;
+import com.brahimsadik.staffinghub.dtos.need.MissionNeedResponse;
 import com.brahimsadik.staffinghub.enums.BusinessUnit;
 import com.brahimsadik.staffinghub.enums.MissionStatus;
 
@@ -24,6 +25,7 @@ public record MissionResponse(
         @Nullable EmployeeSummary projectManager,
         List<MissionSkillResponse> requiredSkills,
         List<MissionAssignmentResponse> assignments,
+        List<MissionNeedResponse> needs,
         Long version,
         Instant createdAt,
         Instant updatedAt) {

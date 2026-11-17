@@ -31,8 +31,9 @@ abstract class ApiTestSupport {
     @BeforeEach
     void cleanDatabase() {
         jdbcTemplate.execute("""
-                TRUNCATE mission_assignments, missions_skills, missions, employees_skills, employees_technologies,
-                         employees_roles, employees, skills, technologies, roles, customers CASCADE""");
+                TRUNCATE mission_needs, mission_assignments, missions_skills, missions, absences, employees_skills,
+                         employees_technologies, employees_roles, employees, skills, technologies, roles, customers
+                         CASCADE""");
     }
 
     /** POSTs the JSON body, expects 201 Created, and returns the new resource's id. */

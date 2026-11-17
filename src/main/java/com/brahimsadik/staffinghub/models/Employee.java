@@ -109,6 +109,9 @@ public class Employee {
     @OneToMany(mappedBy = "employee")
     private Set<MissionAssignment> assignments = new HashSet<>();
 
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Absence> absences = new HashSet<>();
+
     public boolean hasTechnology(UUID technologyId) {
         return technologies.stream().anyMatch(technology -> technology.getId().equals(technologyId));
     }

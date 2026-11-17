@@ -17,6 +17,8 @@ import com.brahimsadik.staffinghub.enums.MissionStatus;
  * @param mostAvailable          the most available employees over the horizon (at most 5)
  * @param overbooked             the overbooked employees (at most 5)
  * @param assignmentsEndingSoon  assignments ending during the horizon, soonest first (at most 10)
+ * @param openNeedCount          open positions on prospect, confirmed and ongoing missions
+ * @param openNeeds              those open positions, soonest first (at most 8)
  */
 public record DashboardResponse(
         LocalDate from,
@@ -28,5 +30,7 @@ public record DashboardResponse(
         Map<MissionStatus, Long> missionsByStatus,
         List<EmployeeAvailabilityResponse> mostAvailable,
         List<EmployeeAvailabilityResponse> overbooked,
-        List<EndingAssignment> assignmentsEndingSoon) {
+        List<EndingAssignment> assignmentsEndingSoon,
+        int openNeedCount,
+        List<OpenNeed> openNeeds) {
 }

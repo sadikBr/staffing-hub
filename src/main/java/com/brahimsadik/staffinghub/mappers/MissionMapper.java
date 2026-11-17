@@ -21,12 +21,18 @@ import com.brahimsadik.staffinghub.dtos.mission.MissionResponse;
 import com.brahimsadik.staffinghub.dtos.mission.MissionSkillResponse;
 import com.brahimsadik.staffinghub.dtos.mission.MissionSummary;
 import com.brahimsadik.staffinghub.dtos.mission.RequiredSkillMatch;
+import com.brahimsadik.staffinghub.dtos.need.MissionNeedFill;
+import com.brahimsadik.staffinghub.dtos.need.MissionNeedRequest;
+import com.brahimsadik.staffinghub.dtos.need.MissionNeedResponse;
+import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.models.EmployeeSkill;
 import com.brahimsadik.staffinghub.models.Mission;
 import com.brahimsadik.staffinghub.models.MissionAssignment;
+import com.brahimsadik.staffinghub.models.MissionNeed;
 import com.brahimsadik.staffinghub.models.MissionSkill;
 
-@Mapper(config = CentralMapperConfig.class, uses = { CustomerMapper.class, EmployeeMapper.class, SkillMapper.class })
+@Mapper(config = CentralMapperConfig.class, uses = { CustomerMapper.class, EmployeeMapper.class, SkillMapper.class,
+        RoleMapper.class })
 public interface MissionMapper {
 
     @Mapping(target = "requiredSkills", source = "skills")
@@ -43,6 +49,28 @@ public interface MissionMapper {
     @Mapping(target = "skillMatches", expression = "java(toSkillMatches(assignment))")
     @Mapping(target = "employeeOccupation", expression = "java(toEmployeeOccupation(assignment))")
     EmployeeAssignmentResponse toEmployeeAssignmentResponse(MissionAssignment assignment);
+
+    MissionNeedResponse toMissionNeedResponse(MissionNeed need);
+
+    @Mapping(target = "assignmentId", source = "id")
+    MissionNeedFill toMissionNeedFill(MissionAssignment assignment);
+
+    /** The role is resolved and validated by the service. */
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    MissionNeed toMissionNeed(MissionNeedRequest request);
+
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    void updateMissionNeed(MissionNeedRequest request, @MappingTarget MissionNeed need);
+
+    /** Open needs first, then by start date (undated last). */
+    default List<MissionNeedResponse> toSortedMissionNeedResponses(Collection<MissionNeed> needs) {
+        return needs.stream().sorted(Comparator.comparing(MissionNeed::isOpen).reversed()
+                .thenComparing(MissionNeed::getStartDate, Comparator.nullsLast(Comparator.<LocalDate>naturalOrder()))
+                .thenComparing(MissionNeed::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(this::toMissionNeedResponse).toList();
+    }
 
     /** The customer and project manager are resolved and validated by the service. */
     @Mapping(target = "version", ignore = true)
@@ -84,11 +112,16 @@ public interface MissionMapper {
 
     /** Compares the assigned employee's skill levels with each of the mission's required skills. */
     default List<RequiredSkillMatch> toSkillMatches(MissionAssignment assignment) {
-        final var employeeLevels = assignment.getEmployee().getSkills().stream()
+        return toSkillMatches(assignment.getEmployee(), assignment.getMission());
+    }
+
+    /** Compares the employee's skill levels with each of the mission's required skills. */
+    default List<RequiredSkillMatch> toSkillMatches(Employee employee, Mission mission) {
+        final var employeeLevels = employee.getSkills().stream()
                 .collect(Collectors.toMap(skill -> skill.getSkill().getId(),
                         Function.<EmployeeSkill>identity()));
 
-        return toSortedMissionSkillResponses(assignment.getMission().getSkills()).stream().map(required -> {
+        return toSortedMissionSkillResponses(mission.getSkills()).stream().map(required -> {
             final var employeeSkill = employeeLevels.get(required.skill().id());
             final var employeeLevel = employeeSkill == null ? null : employeeSkill.getLevel();
             final var meetsRequirement = employeeLevel != null

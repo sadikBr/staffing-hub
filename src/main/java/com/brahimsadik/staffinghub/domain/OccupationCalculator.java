@@ -1,6 +1,7 @@
 package com.brahimsadik.staffinghub.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.TreeMap;
@@ -61,6 +62,20 @@ public final class OccupationCalculator {
     /** What is left once the peak occupation is taken: 100 - peak, never below 0. */
     public static BigDecimal availability(BigDecimal peakRate) {
         return FULL_TIME.subtract(peakRate).max(BigDecimal.ZERO);
+    }
+
+    /**
+     * Like {@link #availability(BigDecimal)}, reduced by the share of working days the employee is away: someone
+     * free but away 5 of 20 working days can take on 75%. {@code workingDays} is 0 for an open-ended period, where
+     * absences are not counted (there is no whole period to spread them over). Rounded to one decimal.
+     */
+    public static BigDecimal availability(BigDecimal peakRate, int absentDays, int workingDays) {
+        final var free = availability(peakRate);
+        if (absentDays == 0 || workingDays == 0) {
+            return free;
+        }
+        final var present = BigDecimal.valueOf(Math.max(workingDays - absentDays, 0));
+        return free.multiply(present).divide(BigDecimal.valueOf(workingDays), 1, RoundingMode.HALF_UP);
     }
 
 }

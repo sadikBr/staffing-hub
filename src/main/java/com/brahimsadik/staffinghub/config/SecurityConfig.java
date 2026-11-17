@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,6 +20,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,8 +32,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * needed. The frontend's files, its runtime configuration, the API docs and the health check stay public: the
  * frontend itself sends users to the login provider.
  * <p>
- * Any authenticated employee can currently do everything (as with today's shared Excel file). To restrict writes to
- * some people later, map a role claim of the token to authorities and add rules in {@link #securityFilterChain}.
+ * What each user may do comes from a role claim of their token (see {@link AppRole} and {@link RoleClaimConverter}):
+ * viewers read, staffers also manage people and missions, admins also manage reference data.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(StaffingSecurityProperties.class)
@@ -55,12 +57,28 @@ public class SecurityConfig {
             return http.build();
         }
 
+        final var api = WebConfig.API_PREFIX;
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers(PUBLIC_API_CONFIG).permitAll()
-                .requestMatchers(WebConfig.API_PREFIX + "/**").authenticated()
+                // Everyone logged in can read everything.
+                .requestMatchers(HttpMethod.GET, api + "/**").authenticated()
+                // Reference data and deleting people: admins only.
+                .requestMatchers(api + "/customers/**", api + "/roles/**", api + "/technologies/**", api + "/skills/**")
+                .hasRole(AppRole.ADMIN.name())
+                .requestMatchers(HttpMethod.DELETE, api + "/employees/*").hasRole(AppRole.ADMIN.name())
+                // Every other change (employees, absences, missions, assignments, needs): staffers and admins.
+                .requestMatchers(api + "/**").hasRole(AppRole.STAFFER.name())
                 .anyRequest().permitAll())
-                .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
+                .oauth2ResourceServer(resourceServer -> resourceServer
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter(properties))));
         return http.build();
+    }
+
+    /** Turns the role claim of the access token into authorities (see {@link RoleClaimConverter}). */
+    static JwtAuthenticationConverter jwtAuthenticationConverter(StaffingSecurityProperties properties) {
+        final var converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(new RoleClaimConverter(properties));
+        return converter;
     }
 
     /**
@@ -91,7 +109,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource(StaffingSecurityProperties properties) {
         final var configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(properties.allowedOrigins());
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setExposedHeaders(List.of("Location"));
 

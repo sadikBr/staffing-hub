@@ -14,24 +14,32 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.brahimsadik.staffinghub.dtos.mission.AssignmentPeriodRequest;
 import com.brahimsadik.staffinghub.dtos.mission.EmployeeAssignmentResponse;
 import com.brahimsadik.staffinghub.dtos.mission.MissionAssignmentRequest;
 import com.brahimsadik.staffinghub.dtos.mission.MissionAssignmentResponse;
 import com.brahimsadik.staffinghub.dtos.mission.MissionCreationUpdateRequest;
 import com.brahimsadik.staffinghub.dtos.mission.MissionResponse;
 import com.brahimsadik.staffinghub.dtos.mission.SetMissionSkillRequest;
+import com.brahimsadik.staffinghub.dtos.need.FillNeedRequest;
+import com.brahimsadik.staffinghub.dtos.need.MissionNeedRequest;
 import com.brahimsadik.staffinghub.enums.BusinessUnit;
 import com.brahimsadik.staffinghub.enums.MissionStatus;
 import com.brahimsadik.staffinghub.exceptions.BusinessRuleViolationException;
+import com.brahimsadik.staffinghub.exceptions.ConflictException;
 import com.brahimsadik.staffinghub.exceptions.ResourceNotFoundException;
 import com.brahimsadik.staffinghub.mappers.MissionMapper;
 import com.brahimsadik.staffinghub.models.Employee;
 import com.brahimsadik.staffinghub.models.Mission;
 import com.brahimsadik.staffinghub.models.MissionAssignment;
+import com.brahimsadik.staffinghub.models.MissionNeed;
+import com.brahimsadik.staffinghub.models.Role;
 import com.brahimsadik.staffinghub.repositories.CustomerRepository;
 import com.brahimsadik.staffinghub.repositories.EmployeeRepository;
 import com.brahimsadik.staffinghub.repositories.MissionAssignmentRepository;
+import com.brahimsadik.staffinghub.repositories.MissionNeedRepository;
 import com.brahimsadik.staffinghub.repositories.MissionRepository;
+import com.brahimsadik.staffinghub.repositories.RoleRepository;
 import com.brahimsadik.staffinghub.repositories.SkillRepository;
 
 import jakarta.persistence.criteria.Predicate;
@@ -47,6 +55,8 @@ public class MissionService {
     private final CustomerRepository customerRepository;
     private final EmployeeRepository employeeRepository;
     private final SkillRepository skillRepository;
+    private final RoleRepository roleRepository;
+    private final MissionNeedRepository missionNeedRepository;
     private final MissionMapper missionMapper;
 
     // --- Missions ---------------------------------------------------------------------------------------------
@@ -149,11 +159,78 @@ public class MissionService {
         return missionMapper.toMissionAssignmentResponse(missionAssignmentRepository.saveAndFlush(assignment));
     }
 
+    /** Also opens again the need the assignment filled, if any. */
     public void deleteAssignment(UUID missionId, UUID assignmentId) {
         final var mission = getMission(missionId);
-        final var assignment = getAssignment(mission, assignmentId);
-        assignment.getEmployee().getAssignments().remove(assignment);
-        mission.getAssignments().remove(assignment);
+        mission.removeAssignment(getAssignment(mission, assignmentId));
+    }
+
+    /**
+     * Moves an assignment in time without touching anything else (used by drag and drop on timelines). Days worked
+     * are capped to the new period if it became shorter.
+     */
+    public MissionAssignmentResponse moveAssignment(UUID missionId, UUID assignmentId, AssignmentPeriodRequest request) {
+        final var assignment = getAssignment(getMission(missionId), assignmentId);
+        OptimisticLocking.checkVersion("assignment", assignment.getVersion(), request.version());
+        if (request.endDate() != null && request.endDate().isBefore(request.startDate())) {
+            throw new BusinessRuleViolationException("The end date cannot be before the start date");
+        }
+        assignment.setStartDate(request.startDate());
+        assignment.setEndDate(request.endDate());
+        if (request.endDate() != null && assignment.getDuration() != null) {
+            final var periodInDays = (int) ChronoUnit.DAYS.between(request.startDate(), request.endDate()) + 1;
+            assignment.setDuration(Math.min(assignment.getDuration(), periodInDays));
+        }
+        return missionMapper.toMissionAssignmentResponse(missionAssignmentRepository.saveAndFlush(assignment));
+    }
+
+    // --- Needs (open positions) -------------------------------------------------------------------------------
+
+    public MissionResponse createNeed(UUID missionId, MissionNeedRequest request) {
+        final var mission = getMission(missionId);
+        checkNeedPeriod(request);
+        final var need = missionMapper.toMissionNeed(request);
+        need.setMission(mission);
+        need.setRole(findRole(request.roleId()));
+        mission.getNeeds().add(need);
+        missionNeedRepository.saveAndFlush(need);
+        return missionMapper.toMissionResponse(mission);
+    }
+
+    public MissionResponse updateNeed(UUID missionId, UUID needId, MissionNeedRequest request) {
+        final var mission = getMission(missionId);
+        final var need = getNeed(mission, needId);
+        OptimisticLocking.checkVersion("need", need.getVersion(), request.version());
+        checkNeedPeriod(request);
+        missionMapper.updateMissionNeed(request, need);
+        need.setRole(findRole(request.roleId()));
+        missionNeedRepository.saveAndFlush(need);
+        return missionMapper.toMissionResponse(mission);
+    }
+
+    /** Deleting a filled need keeps its assignment. */
+    public void deleteNeed(UUID missionId, UUID needId) {
+        final var mission = getMission(missionId);
+        mission.getNeeds().remove(getNeed(mission, needId));
+    }
+
+    /** Assigns the employee to the mission with the need's dates and rate, and marks the need as filled. */
+    public MissionResponse fillNeed(UUID missionId, UUID needId, FillNeedRequest request) {
+        final var mission = getMission(missionId);
+        final var need = getNeed(mission, needId);
+        if (!need.isOpen()) {
+            throw new ConflictException("This need is already filled by %s %s".formatted(
+                    need.getFilledBy().getEmployee().getFirstName(), need.getFilledBy().getEmployee().getLastName()));
+        }
+        final var assignmentRequest = new MissionAssignmentRequest(request.employeeId(), need.getStartDate(),
+                need.getEndDate(), null, need.getRate(), null, need.getComment(), null);
+        final var assignment = missionMapper.toMissionAssignment(assignmentRequest);
+        assignment.setMission(mission);
+        applyAssignmentRules(assignment, assignmentRequest);
+        mission.getAssignments().add(assignment);
+        need.setFilledBy(missionAssignmentRepository.saveAndFlush(assignment));
+        missionNeedRepository.saveAndFlush(need);
+        return missionMapper.toMissionResponse(mission);
     }
 
     /** Most recent first; undated assignments last. */
@@ -172,6 +249,22 @@ public class MissionService {
 
     private Mission getMission(UUID id) {
         return missionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("mission", id));
+    }
+
+    private static MissionNeed getNeed(Mission mission, UUID needId) {
+        return mission.findNeed(needId).orElseThrow(
+                () -> new ResourceNotFoundException("The mission has no need with the id " + needId));
+    }
+
+    private Role findRole(UUID roleId) {
+        return roleId == null ? null : roleRepository.findById(roleId)
+                .orElseThrow(() -> new BusinessRuleViolationException("No role exists with the id " + roleId));
+    }
+
+    private static void checkNeedPeriod(MissionNeedRequest request) {
+        if (request.startDate() != null && request.endDate() != null && request.endDate().isBefore(request.startDate())) {
+            throw new BusinessRuleViolationException("The end date cannot be before the start date");
+        }
     }
 
     private static MissionAssignment getAssignment(Mission mission, UUID assignmentId) {

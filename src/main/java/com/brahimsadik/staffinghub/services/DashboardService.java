@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,11 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.brahimsadik.staffinghub.dtos.availability.AvailabilityCriteria;
 import com.brahimsadik.staffinghub.dtos.dashboard.DashboardResponse;
 import com.brahimsadik.staffinghub.dtos.dashboard.EndingAssignment;
+import com.brahimsadik.staffinghub.dtos.dashboard.OpenNeed;
 import com.brahimsadik.staffinghub.dtos.employee.EmployeeSearchCriteria;
 import com.brahimsadik.staffinghub.enums.MissionStatus;
 import com.brahimsadik.staffinghub.mappers.EmployeeMapper;
 import com.brahimsadik.staffinghub.mappers.MissionMapper;
 import com.brahimsadik.staffinghub.repositories.MissionAssignmentRepository;
+import com.brahimsadik.staffinghub.repositories.MissionNeedRepository;
 import com.brahimsadik.staffinghub.repositories.MissionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,12 +31,15 @@ public class DashboardService {
 
     public static final int HORIZON_DAYS = 30;
     private static final BigDecimal AVAILABLE_THRESHOLD = BigDecimal.valueOf(50);
+    private static final List<MissionStatus> ACTIVE_MISSIONS = List.of(MissionStatus.PROSPECT,
+            MissionStatus.CONFIRMED, MissionStatus.ONGOING);
     private static final EmployeeSearchCriteria ALL_ACTIVE = new EmployeeSearchCriteria(null, null, null, null, null,
             null, null, null, false);
 
     private final AvailabilityService availabilityService;
     private final MissionRepository missionRepository;
     private final MissionAssignmentRepository missionAssignmentRepository;
+    private final MissionNeedRepository missionNeedRepository;
     private final MissionMapper missionMapper;
     private final EmployeeMapper employeeMapper;
     private final Clock clock;
@@ -61,9 +67,13 @@ public class DashboardService {
                         assignment.getRate()))
                 .toList();
 
+        final var openNeeds = missionNeedRepository.findOpenNeeds(ACTIVE_MISSIONS);
+
         return new DashboardResponse(from, to, HORIZON_DAYS, availability.size(), available.size(),
                 overbooked.size(), missionsByStatus, available.stream().limit(5).toList(),
-                overbooked.stream().limit(5).toList(), endingSoon);
+                overbooked.stream().limit(5).toList(), endingSoon, openNeeds.size(),
+                openNeeds.stream().limit(8).map(need -> new OpenNeed(missionMapper.toMissionSummary(need.getMission()),
+                        missionMapper.toMissionNeedResponse(need))).toList());
     }
 
 }

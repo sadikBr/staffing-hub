@@ -33,6 +33,7 @@ class QueryCountTests extends ApiTestSupport {
     private final List<String> skills = new ArrayList<>();
     private String customer;
     private String mission;
+    private String need;
     private String manager;
     private String someEmployee;
 
@@ -58,6 +59,8 @@ class QueryCountTests extends ApiTestSupport {
                 "/api/employees/" + someEmployee + "/assignments",
                 "/api/missions?size=100",
                 "/api/missions/" + mission,
+                "/api/missions/" + mission + "/needs/" + need + "/candidates?limit=50",
+                "/api/dashboard",
                 "/api/technologies",
                 "/api/skills",
                 "/api/roles")) {
@@ -92,6 +95,10 @@ class QueryCountTests extends ApiTestSupport {
             mockMvc.perform(put("/api/missions/{id}/skills/{skillId}", mission, skill)
                     .contentType(MediaType.APPLICATION_JSON).content("{\"requiredLevel\": \"INTERMEDIATE\"}"));
         }
+        final var body = mockMvc.perform(post("/api/missions/{id}/needs", mission).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"roleId\": \"%s\", \"startDate\": \"2026-03-01\"}".formatted(roles.getFirst())))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        need = com.jayway.jsonpath.JsonPath.read(body, "$.needs[0].id");
     }
 
     /** Each employee: a manager, all roles and technologies, all skills, and two assignments on two missions. */
@@ -110,6 +117,9 @@ class QueryCountTests extends ApiTestSupport {
             final var ownMission = create("/api/missions", """
                     {"label": "M%s", "projectName": "P", "status": "ONGOING", "customerId": "%s"}"""
                     .formatted(employee, customer));
+            mockMvc.perform(post("/api/employees/{id}/absences", employee).contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"type\": \"HOLIDAY\", \"startDate\": \"2026-02-02\", \"endDate\": \"2026-02-06\"}"))
+                    .andExpect(status().isCreated());
             for (final var target : List.of(mission, ownMission)) {
                 mockMvc.perform(post("/api/missions/{id}/assignments", target).contentType(MediaType.APPLICATION_JSON)
                         .content("""
