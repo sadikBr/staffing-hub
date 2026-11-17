@@ -12,13 +12,14 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.brahimsadik.staffinghub.SecurityTestConfiguration;
 import com.brahimsadik.staffinghub.TestcontainersConfiguration;
 import com.jayway.jsonpath.JsonPath;
 
 /** Full-stack tests: real HTTP layer, real services, real PostgreSQL (via Testcontainers), cleaned before each test. */
-@SpringBootTest
+@SpringBootTest(properties = SecurityTestConfiguration.TEST_ISSUER_PROPERTY)
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({ TestcontainersConfiguration.class, SecurityTestConfiguration.class })
 abstract class ApiTestSupport {
 
     @Autowired
